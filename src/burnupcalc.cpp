@@ -294,12 +294,13 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
 
     //set the radial thickness of each region
     R[0] = sqrt(core.fuel_area/region/3.141592);
+    cout << "R: " << R[0] << "  ";
     for(int i = 1; i < region; i++){
         R[i] = sqrt(core.fuel_area/region/3.141592*(i+1));
-        cout << "R: " << R[i] << endl;
+        cout << R[i] << "  ";
     }
     R[region] = R[region-1] + core.mod_thickness; //this is the moderator region
-
+    cout << R[region] << endl;
 
 //
 //    Sigma_a[0] = 0.0230;
@@ -335,12 +336,6 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     for(int i = 0; i < region+1; i++){
         dd2[i] = D[i]/delta/delta;
     }
-
-
-    cout << "Compositions in cylindrical calc: " << endl;
-    for(int r = 0; r < region+1; r++){
-        //cout << core.batch[r].comp[922350] << "  ";
-    } cout << endl;
 
     //populate N, number of mesh points in each region
     N[0] = R[0]/delta;
@@ -478,7 +473,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     //ĺcout << endl;
 
 
-
+    cout << "---phi---" << endl<< phi << endl << "--------" << endl;
 
     //NO NEED TO normalize phi
     //phi = phi.array()/phi.maxCoeff();
@@ -754,8 +749,7 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta) {
             //inverse-production flux calculation
             core = phicalc_simple(core);
         }else if(mode == 3){
-            // UNDER DEVELOPMENT
-            //core = phicalc_cylindrical(core);
+            core = phicalc_cylindrical(core);
         }else if(mode == 0){
             // equal power sharing assumption method
             core = phicalc_eqpow(core, dt);
@@ -862,8 +856,7 @@ void burnupcalc_CR(fuelBundle &core, int mode, int DA_mode, double delta) {
             //inverse-production flux calculation
             core = phicalc_simple(core);
         }else if(mode == 3){
-            //UNDER DEVELOPMENT
-            //core = phicalc_cylindrical(core);
+            core = phicalc_cylindrical(core);
         }else if(mode == 0){
             //equal power sharing assumption
             core = phicalc_eqpow(core, dt);
@@ -1046,7 +1039,7 @@ double SS_burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int 
                 //inverse-production flux calculation
                 core = phicalc_simple(core);
             }else if(mode == 3){
-                //core = phicalc_cylindrical(core);
+                core = phicalc_cylindrical(core);
             }else if(mode == 0){
                 core = phicalc_eqpow(core, dt);
             } else {
@@ -1162,7 +1155,7 @@ double SS_burnupcalc_depricated(fuelBundle &core, int mode, int DA_mode, double 
                 //inverse-production flux calculation
                 core = phicalc_simple(core);
             }else if(mode == 3){
-                //core = phicalc_cylindrical(core);
+                core = phicalc_cylindrical(core);
             }else if(mode == 0){
                 core = phicalc_eqpow(core, dt);
             } else {
@@ -1269,7 +1262,7 @@ double SS_burnupcalc_CR(fuelBundle &core, int mode, int DA_mode, double delta, i
                 //inverse-production flux calculation
                 core = phicalc_simple(core);
             }else if(mode == 3){
-                //core = phicalc_cylindrical(core);
+                core = phicalc_cylindrical(core);
             }else if(mode == 0){
                 core = phicalc_eqpow(core, dt);
             } else {

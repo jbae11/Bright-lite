@@ -1,11 +1,13 @@
 <!-- 
-This example is used to compare the flux profile of an LWR
-to results from MCNP6
+Used to benchmark spatialflux method
+
+MCNP returns fluxes, with these input parameters:
+1.000 | 0.887 | 0.759 
 -->
 
 <simulation>
   <control>
-    <duration>2</duration>
+    <duration>5</duration>
     <startmonth>1</startmonth>
     <startyear>2000</startyear>
   </control>
@@ -24,7 +26,7 @@ to results from MCNP6
       <Source>
         <commod>freshFuel</commod>
         <recipe_name>commod_recipe</recipe_name>
-				<capacity>50000</capacity>
+	<capacity>500000</capacity>
       </Source>
     </config>
   </facility>
@@ -35,7 +37,7 @@ to results from MCNP6
       <Source>
         <commod>freshFuel1</commod>
         <recipe_name>commod_recipe1</recipe_name>
-				<capacity>35000.0</capacity>
+	<capacity>35000.0</capacity>
       </Source>
     </config>
   </facility>
@@ -46,7 +48,7 @@ to results from MCNP6
       <Source>
         <commod>freshFuel2</commod>
         <recipe_name>commod_recipe2</recipe_name>
-				<capacity>35000.0</capacity>
+	<capacity>35000.0</capacity>
       </Source>
     </config>
   </facility>
@@ -57,7 +59,18 @@ to results from MCNP6
       <Source>
         <commod>freshFuel3</commod>
         <recipe_name>commod_recipe3</recipe_name>
-				<capacity>35000.0</capacity>
+	<capacity>35000.0</capacity>
+      </Source>
+    </config>
+  </facility>
+
+  <facility>
+    <name>Source4</name>
+    <config>
+      <Source>
+        <commod>freshFuel4</commod>
+        <recipe_name>commod_recipe4</recipe_name>
+	<capacity>35000.0</capacity>
       </Source>
     </config>
   </facility>
@@ -83,20 +96,17 @@ to results from MCNP6
             <val>freshFuel1</val>
             <val>freshFuel2</val>
             <val>freshFuel3</val> 
+            <val>freshFuel4</val> 
         </in_commods>
         <out_commod>uf</out_commod>
-        <libraries><val>standLWR</val></libraries>
+        <libraries><val>extLWR</val></libraries>
         <target_burnup>0.0</target_burnup>
-        <nonleakage>0.90205</nonleakage>
-        <core_mass>104100</core_mass>
+        <nonleakage>0.9773</nonleakage>
+        <core_mass>112000</core_mass>
         <generated_power>1390</generated_power>
-    		<interpol_pairs>
-	   			<key>BURNUP</key><val>33</val>
-   	   		<key>ENRICHMENT</key><val>3</val>
-        </interpol_pairs>
         <batches>3</batches>
         <flux_mode>3</flux_mode>
-        <reactor_life>360</reactor_life>
+        <reactor_life>480</reactor_life>
         <burnupcalc_timestep>100</burnupcalc_timestep>
         <DA_mode>1</DA_mode>	
         <CR_fissile>
@@ -138,6 +148,10 @@ to results from MCNP6
         <entry>
           <prototype>Source3</prototype>
           <number>1</number>
+        </entry>  
+        <entry>
+          <prototype>Source4</prototype>
+          <number>1</number>
         </entry>     
         <entry>
           <prototype>Rx</prototype>
@@ -157,11 +171,11 @@ to results from MCNP6
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>3.1</comp>
+      <comp>3.6</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>96.9</comp>
+      <comp>96.4</comp>
     </nuclide>
   </recipe>
   
@@ -170,11 +184,11 @@ to results from MCNP6
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>1.5</comp>
+      <comp>1.8</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>98.5</comp>
+      <comp>98.2</comp>
     </nuclide>
   </recipe>
   
@@ -183,11 +197,11 @@ to results from MCNP6
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>2.4</comp>
+      <comp>2.204</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>97.6</comp>
+      <comp>97.796</comp>
     </nuclide>
   </recipe>
   
@@ -196,11 +210,24 @@ to results from MCNP6
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>2.95</comp>
+      <comp>2.656</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>97.05</comp>
+      <comp>97.344</comp>
+    </nuclide>
+  </recipe>
+  
+  <recipe>
+    <name>commod_recipe4</name>
+    <basis>mass</basis>
+    <nuclide>
+      <id>U235</id>
+      <comp>3.1</comp>
+    </nuclide>
+    <nuclide>
+      <id>U238</id>
+      <comp>96.9</comp>
     </nuclide>
   </recipe>
 
