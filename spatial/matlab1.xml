@@ -104,11 +104,11 @@ MCNP returns fluxes, with these input parameters:
         <flux_mode>3</flux_mode>
         <reactor_life>480</reactor_life>
 	<fuel_area>89197</fuel_area>
-	<fuel_Sig_tr>0.40</fuel_Sig_tr>
+	<fuel_Sig_tr>0.12</fuel_Sig_tr>
 	<mod_Sig_a>0.02</mod_Sig_a>
-	<mod_Sig_tr>.4</mod_Sig_tr>
-	<cylindrical_delta>6</cylindrical_delta>
-        <burnupcalc_timestep>300</burnupcalc_timestep>
+	<mod_Sig_tr>.099</mod_Sig_tr>
+	<cylindrical_delta>10</cylindrical_delta>
+        <burnupcalc_timestep>1000</burnupcalc_timestep>
         <DA_mode>0</DA_mode>	
         <CR_fissile>
             <val>902250</val>

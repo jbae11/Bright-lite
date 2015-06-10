@@ -281,6 +281,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     int N[region+1]; //number of mesh points in each region
     int NC[region+1]; //cumulative N
     int NTotal; //total number of mesh points
+    int iter;
     double dd2[region+1]; // D/delta^2
     double Sigma_a[region+1]; //mac. abs. cs of each region
     double NuSigma_f[region+1]; //nu sigma f of each region
@@ -335,12 +336,12 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     }
 
     //populate N, number of mesh points in each region
-    N[0] = R[0]/delta;
+    N[0] = round(R[0]/delta);
     NC[0] = N[0];
     NTotal = N[0];
 
     for(int i = 1; i < region+1; i++){
-        N[i] = ceil((R[i] - R[i-1]) / delta);
+        N[i] = round((R[i] - R[i-1]) / delta);
         if(N[i] < 3){
             cout << "  Warning, too few discrete points in spatial flux calc. - Increase fuel_area or decrease cylindrical_delta." << endl;
             core = phicalc_simple(core);
@@ -355,6 +356,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     cout << " --input parameters-- " << endl;
     for(int i = 0; i < region+1; i++){
         cout << " " << i+1 << " R:" << R[i] << " N:" << N[i] << " Siga:" << Sigma_a[i] << " nSigf:" << NuSigma_f[i] << " Sigtr: " << Sigma_tr[i] << endl;
+        cout << "     D:" << D[i] << " LSquared:" << LSquared[i] << " dd2:" << dd2[i] << endl;
     }
 
 
@@ -409,7 +411,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     }
 
 
-    for(int iter = 0; iter < 10; iter++){
+    for(iter = 0; iter < 10; iter++){
         phi = A.colPivHouseholderQr().solve(S_prev)/k_prev;
 
 
@@ -477,16 +479,14 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
         }
     }
 
-    //cout << "flux: ";
-    //cout << core.fuel_area << " " << delta << " | " << Sigma_a[0] << " " << Sigma_a[1] << " " << Sigma_a[2] << " | "
-    //<< NuSigma_f[0] << " " << NuSigma_f[1] << " " << NuSigma_f[2] << " | ";
     //normalize the fluxes
     for(r = 0; r < region+1; r++){
         flux[r] /= maxflux;
-        //cout << flux[r] << " ";
     }
-    //ĺcout << endl;
 
+    cout << " Iterations:" << iter << " k:" << k << endl;
+
+    cout << "--- A ---" << endl << A << endl << " --- ----" << endl;
 
     cout << "---phi---" << endl<< phi << endl << "--------" << endl;
 
@@ -513,7 +513,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
         }
     }
 
-    //cout << "flux: ";
+    cout << "flux: ";
     //cout << core.fuel_area << " " << delta << " | " << Sigma_a[0] << " " << Sigma_a[1] << " " << Sigma_a[2] << " | "
     //<< NuSigma_f[0] << " " << NuSigma_f[1] << " " << NuSigma_f[2] << " | ";
     //normalize the fluxes
