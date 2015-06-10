@@ -295,36 +295,32 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
 
     //set the radial thickness of each region
     R[0] = sqrt(core.fuel_area/region/3.141592);
-    cout << "R: " << R[0] << "  ";
+
     for(int i = 1; i < region; i++){
         R[i] = sqrt(core.fuel_area/region/3.141592*(i+1));
-        cout << R[i] << "  ";
     }
     R[region] = R[region-1] + core.mod_thickness; //this is the moderator region
-    cout << R[region] << endl;
 
-//
-//    Sigma_a[0] = 0.0230;
-//    Sigma_a[1] = 0.0246;
-//    Sigma_a[2] = 0.0324;
-//    NuSigma_f[0] = 0.0184;
-//    NuSigma_f[1] = 0.0217;
-//    NuSigma_f[2] = 0.0382;
     //assign fuel cross sections
-    cout << "Sigf, Siga:  ";
     for(int i = 0; i < region; i++){
 
         NuSigma_f[i] = nusigf_finder(core.batch[i]);
 
         Sigma_a[i] = siga_finder(core.batch[i]);
 
+        /// comment out!
+        Sigma_a[0] = 0.0230;
+        Sigma_a[1] = 0.0246;
+        Sigma_a[2] = 0.0324;
+        NuSigma_f[0] = 0.0184;
+        NuSigma_f[1] = 0.0217;
+        NuSigma_f[2] = 0.0382;
+        /// till here!
+
         Sigma_tr[i] = core.fuel_Sig_tr;
         D[i] = 1/(Sigma_tr[i]*3.);
         LSquared[i] = D[i]/Sigma_a[i];
-
-        cout << NuSigma_f[i] << ", " << Sigma_a[i] << " | ";
-
-    } cout << endl;
+    }
 
     //assign moderator cross sections
     Sigma_a[region] = 0.0066;// core.mod_Sig_a;
@@ -355,6 +351,13 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     }
     NC[region] += 1;
     NTotal += 1;
+
+    cout << " --input parameters-- " << endl;
+    for(int i = 0; i < region+1; i++){
+        cout << " " << i+1 << " R:" << R[i] << " N:" << N[i] << " Siga:" << Sigma_a[i] << " nSigf:" << NuSigma_f[i] << " Sigtr: " << Sigma_tr[i] << endl;
+    }
+
+
     Eigen::MatrixXf A(NTotal, NTotal);
     Eigen::MatrixXf F(NTotal, 1);
     Eigen::MatrixXf phi(NTotal, 1);
@@ -452,11 +455,17 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     r = 0;
     flux[0] = 0;
     for(int i = 0; i < NTotal; i++){
+        if(phi(i) < 0){phi(i) = 0;}
+
         flux[r] += phi(i)*(2*(i+1)-1);
         sum += (2*(i+1)-1);
 
+        // uses some trickery to switch between regions
         if(i == NC[r] || i == NTotal-1){
+            // divide by total area
             flux[r] /= sum;
+
+            // reset sum and flux of next region
             sum = 0;
             r += 1;
             flux[r] = 0;
