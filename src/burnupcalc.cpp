@@ -267,12 +267,13 @@ double siga_finder(batch_info &batch){
     return sig_a;
 }
 
-
-////////////////////////////////////////////////////////////////////////////////////////////
+/*
+fuelBundle phicalc_cylindrical(fuelBundle &core){return core;}
+*/
 fuelBundle phicalc_cylindrical(fuelBundle &core){
 //cout << "cylindrical" << endl<<endl<<endl<<endl<<endl;
 
-//the word 'region' is interchanged with the word 'batch' in comments, water layer is the outermost region
+//the word 'region' is interchanged with 'batch' in comments, water layer can be the outermost region
 
     int region = core.batch.size(); // number of regions (batches) not counting the outer region
     double delta = core.cylindrical_delta;
@@ -344,6 +345,11 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
 
     for(int i = 1; i < region+1; i++){
         N[i] = ceil((R[i] - R[i-1]) / delta);
+        if(N[i] < 3){
+            cout << "  Warning, too few discrete points in spatial flux calc. - Increase fuel_area or decrease cylindrical_delta." << endl;
+            core = phicalc_simple(core);
+            return core;
+        }
         NC[i] = NC[i-1] + N[i];
         NTotal += N[i];
     }
@@ -515,7 +521,8 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
 
     return core;
 }
-/////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 
 /**
