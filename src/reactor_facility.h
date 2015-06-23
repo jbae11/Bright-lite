@@ -232,48 +232,46 @@ class ReactorFacility : public cyclus::Facility  {
                       "tooltip": "Thermal to electric conversion rate."}
   double efficiency;
 
-  #pragma cyclus var {"default": 4197, \
-                      "units": "cm2", \
+  #pragma cyclus var {"default": 100, \
                       "userlevel": 3, \
-                      "tooltip": "Total area of the fuel in core. Used for cylindrical flux calculation."}
+                      "tooltip": "Area of the fuel effective fuel core for spatial flux calc. Used for cylindrical flux calculation. (mod_thickness, fuel_area, and cylindrical_delta have the same base units)"}
   double fuel_area;
 
-  #pragma cyclus var {"default": 5, \
+  #pragma cyclus var {"default": 0.15, \
                       "userlevel": 3, \
-                      "tooltip": "Delta to be used for cylindrical flux calculation."}
+                      "tooltip": "Delta to be used for spatial flux calculation. (mod_thickness, fuel_area, and cylindrical_delta have the same base units)"}
   double cylindrical_delta;
 
-  #pragma cyclus var {"default": 0.0222, \
+  #pragma cyclus var {"default": 0.0012, \
                       "units": "cm-1", \
                       "userlevel": 3, \
-                      "tooltip": "Macroscopic absorption cross section of the moderator."}
+                      "tooltip": "Macroscopic absorption cross section of the moderator for spatial flux calculation."}
   double mod_Sig_a;
 
-  #pragma cyclus var {"default": 3.46, \
+  #pragma cyclus var {"default": 0.18, \
                       "units": "cm-1", \
                       "userlevel": 3, \
-                      "tooltip": "Macroscopic transport cross section of the moderator."}
+                      "tooltip": "Macroscopic transport cross section of the moderator for spatial flux calculation."}
   double mod_Sig_tr;
 
   #pragma cyclus var {"default": 0.0, \
                       "units": "cm-1", \
                       "userlevel": 3, \
-                      "tooltip": "Macroscopic fission cross section of the moderator."}
+                      "tooltip": "Macroscopic fission cross section of the moderator for spatial flux calculation."}
   double mod_Sig_f;
 
-  #pragma cyclus var {"default": 50, \
-                      "units": "cm", \
+  #pragma cyclus var {"default": 10, \
                       "userlevel": 3, \
-                      "tooltip": "Radial thickness of the moderator used for cylindrical flux calculation."}
+                      "tooltip": "Radial thickness of the moderator used for spatial flux calculation. (mod_thickness, fuel_area, and cylindrical_delta have the same base units)"}
   double mod_thickness;
 
-  #pragma cyclus var {"default": 0.12, \
+  #pragma cyclus var {"default": 0.24368, \
                       "units": "cm-1", \
                       "userlevel": 3, \
-                      "tooltip": "Macroscopic transport cross section of the fuel."}
+                      "tooltip": "Macroscopic transport cross section of the fuel for spatial flux calculation."}
   double fuel_Sig_tr;
 
-  #pragma cyclus var {"default": 10, \
+  #pragma cyclus var {"default": 50, \
                       "userlevel": 2, \
                       "tooltip": "Timestep [days] for the burnup calculation."}
   double burnupcalc_timestep;
