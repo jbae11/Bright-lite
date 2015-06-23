@@ -309,14 +309,14 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
 
         Sigma_a[i] = siga_finder(core.batch[i]);
 
-        /// comment out!
+    /*    /// comment out!
         Sigma_a[0] = 0.0230;
         Sigma_a[1] = 0.0246;
         Sigma_a[2] = 0.0324;
         NuSigma_f[0] = 0.0184;
         NuSigma_f[1] = 0.0217;
         NuSigma_f[2] = 0.0382;
-        /// till here!
+        /// till here!  */
 
         Sigma_tr[i] = core.fuel_Sig_tr;
         D[i] = 1/(Sigma_tr[i]*3.);
@@ -356,7 +356,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     cout << " --input parameters-- " << endl;
     for(int i = 0; i < region+1; i++){
         cout << " " << i+1 << " R:" << R[i] << " N:" << N[i] << " Siga:" << Sigma_a[i] << " nSigf:" << NuSigma_f[i] << " Sigtr: " << Sigma_tr[i] << endl;
-        cout << "     D:" << D[i] << " LSquared:" << LSquared[i] << " dd2:" << dd2[i] << endl;
+        //cout << "     D:" << D[i] << " LSquared:" << LSquared[i] << " dd2:" << dd2[i] << endl;
     }
 
 
@@ -484,11 +484,9 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
         flux[r] /= maxflux;
     }
 
-    cout << " Iterations:" << iter << " k:" << k << endl;
-
-    cout << "--- A ---" << endl << A << endl << " --- ----" << endl;
-
-    cout << "---phi---" << endl<< phi << endl << "--------" << endl;
+    //cout << " Iterations:" << iter << " k:" << k << endl;
+    //cout << "--- A ---" << endl << A << endl << " --- ----" << endl;
+    //cout << "---phi---" << endl<< phi << endl << "--------" << endl;
 
     //NO NEED TO normalize phi
     //phi = phi.array()/phi.maxCoeff();
