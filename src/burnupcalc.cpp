@@ -349,7 +349,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
         //cout << " " << i+1 << " R:" << R[i] << " N:" << N[i] << " Siga:" << Sigma_a[i] << " nSigf:" << NuSigma_f[i] << endl;
         //cout << "     D:" << D[i] << " LSquared:" << LSquared[i] << " dd2:" << dd2[i] << " Sigtr: " << Sigma_tr[i] << endl;
     }
-
+/*
     Eigen::MatrixXf A(NTotal, NTotal);
     Eigen::MatrixXf F(NTotal, 1);
     Eigen::MatrixXf phi(NTotal, 1);
@@ -494,7 +494,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     for(int i = 0; i < core.batch.size(); i++){
         core.batch[i].rflux = flux[i];
     }
-
+*/
     return core;
 }
 
