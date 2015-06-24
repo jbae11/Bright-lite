@@ -321,7 +321,9 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
 
     if((R[region-1]-R[region-2])/delta < 2.99){
         cout << "  Warning, too few discrete points in spatial flux calc." << endl;
-        delta = (R[region-1]-R[region-2])/3;
+        int last = region;
+        if(region == 1){last = 2;}
+        delta = (R[last-1]-R[last-2])/3;
         core.cylindrical_delta = delta;
         cout << "    Delta will be changed to " << delta << " [cm]." << endl;
     }
@@ -734,7 +736,7 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta) {
 
         //update fluences
         for(int i = 0; i < N; i++){
-            //cout << "flux: " << core.batch[i].rflux << endl;
+            cout << "flux: " << core.batch[i].rflux << endl;
             core.batch[i].Fg += core.batch[i].rflux * core.base_flux * dt;
 
         }
