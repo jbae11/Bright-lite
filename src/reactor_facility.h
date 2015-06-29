@@ -127,6 +127,7 @@ class ReactorFacility : public cyclus::Facility  {
 
   void CoreBuilder();
   void batch_reorder();
+  void param_check();
 
   double SS_enrich;
   double ss_fraction;
@@ -273,10 +274,15 @@ class ReactorFacility : public cyclus::Facility  {
                       "tooltip": "Macroscopic transport cross section of the fuel."}
   double fuel_Sig_tr;
 
-  #pragma cyclus var {"default": 10, \
+  #pragma cyclus var {"default": 50, \
                       "userlevel": 2, \
-                      "tooltip": "Timestep [days] for the burnup calculation."}
+                      "tooltip": "Timestep [days] for the burnup fluence calculation."}
   double burnupcalc_timestep;
+
+  #pragma cyclus var {"default": 2, \
+                      "userlevel": 3, \
+                      "tooltip": "Timestep for the burnup flux calculation, multiple of burnupcalc_timestep. Min=1"}
+  int ds;
 
   #pragma cyclus var {"default": 1, \
                       "userlevel": 2, \

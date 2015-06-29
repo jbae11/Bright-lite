@@ -154,6 +154,7 @@ void ReactorFacility::Tick() {
           core_[i] = fuel_library_[i];
         }*/
 
+        param_check();
 
 
         //read list of isotopes for conversion ratio calculation
@@ -268,7 +269,7 @@ void ReactorFacility::Tock() {
     //pass fuel bundles to burn-up calc
 
     if(CR_target < 0){
-        burnupcalc(fuel_library_, flux_mode, DA_mode, burnupcalc_timestep);
+        burnupcalc(fuel_library_, flux_mode, DA_mode, burnupcalc_timestep, ds);
     } else if (target_burnup > 0){
         if(refuels < batches){
             fuel_library_.target_BU = (double)(refuels+1.)*target_burnup/(double)batches;
@@ -277,7 +278,7 @@ void ReactorFacility::Tock() {
         }
         burnupcalc_CR(fuel_library_, flux_mode, DA_mode, burnupcalc_timestep);
     } else {
-        burnupcalc(fuel_library_, flux_mode, DA_mode, burnupcalc_timestep);
+        burnupcalc(fuel_library_, flux_mode, DA_mode, burnupcalc_timestep, ds);
     }
 
     // this is saved and may be used later for steady state calcs during blending
@@ -965,7 +966,7 @@ void ReactorFacility::CoreBuilder(){
     return;
 }
 
-/** This functions orders the batches on the first tock. It is done to ensure that the
+/** This function orders the batches on the first tock. It is done to ensure that the
 incoming batches are ordered by criticality to ensure that the batch with the lowest
 k is discharged first */
 void ReactorFacility::batch_reorder(){
@@ -994,6 +995,37 @@ void ReactorFacility::batch_reorder(){
     }
 
 //std::cout << " End batch_reorder" << std::endl;
+}
+
+/** Checks the inputs for logical values, warns user otherwise and corrects them **/
+void ReactorFacility::param_check(){
+    if(ds < 1){
+        std::cout << "Warning! Agent " << id() << " input parameter 'ds' set too low. New value: 1    "
+                << " Use flux_mode=1 to bypass flux calculation." << std::endl;
+        ds = 1;
+    }
+    if(batches < 1){
+        std::cout << "Error! Agent " << id() << " input parameter 'batches' set too low. New value: 1" << std::endl;
+        batches = 1;
+        batch_info empty_batch;
+        for(int i = 0; i < batches; i++){
+            fuel_library_.batch.push_back(empty_batch);
+            fuel_library_.batch[i].batch_fluence = 0; //fluence of the batch is set to zero
+            fuel_library_.batch[i].DA = 1;
+        }
+    }
+    if(target_burnup < 0){
+        std::cout << "Error! Agent " << id() << " input parameter 'target_burnup' set too low. New value: 0" << std::endl;
+        std::cout << "   Agent " << id() << " will now operate in forward mode." << std::endl;
+        target_burnup = 0;
+        fuel_library_.target_BU = target_burnup;
+    }
+    if(nonleakage <= 0){
+        std::cout << "Error! Agent " << id() << " input parameter 'nonleakage' set too low. New value: 1" << std::endl;
+        nonleakage = 1;
+        fuel_library_.pnl = nonleakage;
+    }
+
 }
 
 
