@@ -96,14 +96,21 @@ This example is a benchmark based on the study
         <out_commod>uf</out_commod>
         <libraries><val>standLWR</val></libraries>
         <target_burnup>0.0</target_burnup>
-        <nonleakage>0.9565</nonleakage>
+        <nonleakage>1</nonleakage>
         <core_mass>104100</core_mass>
         <generated_power>4020</generated_power>
 	<efficiency>.34577</efficiency>
         <batches>3</batches>
         <flux_mode>3</flux_mode>
-        <burnupcalc_timestep>50</burnupcalc_timestep>
+        <burnupcalc_timestep>15</burnupcalc_timestep>
         <DA_mode>0</DA_mode>
+
+	<fuel_Sig_tr>0.012</fuel_Sig_tr>
+
+	<cylindrical_delta>0.002</cylindrical_delta>
+	
+	<max_cycles>1</max_cycles>
+
         <CR_fissile>
             <val>902250</val>
             <val>902270</val>
@@ -175,11 +182,27 @@ This example is a benchmark based on the study
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>1.5</comp>
+      <comp>0.000689</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>98.5</comp>
+      <comp>0.343746</comp>
+    </nuclide>
+    <nuclide>
+      <id>PU239</id>
+      <comp>0.027244</comp>
+    </nuclide>
+    <nuclide>
+      <id>PU240</id>
+      <comp>0.007773</comp>
+    </nuclide>
+    <nuclide>
+      <id>PU241</id>
+      <comp>0.004087</comp>
+    </nuclide>
+    <nuclide>
+      <id>PU242</id>
+      <comp>0.000962</comp>
     </nuclide>
   </recipe>
   
@@ -188,11 +211,27 @@ This example is a benchmark based on the study
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>2.4</comp>
+      <comp>0.000653</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>97.6</comp>
+      <comp>0.325864</comp>
+    </nuclide>
+    <nuclide>
+      <id>PU239</id>
+      <comp>0.039428</comp>
+    </nuclide>
+    <nuclide>
+      <id>PU240</id>
+      <comp>0.011249</comp>
+    </nuclide>
+    <nuclide>
+      <id>PU241</id>
+      <comp>0.005914</comp>
+    </nuclide>
+    <nuclide>
+      <id>PU242</id>
+      <comp>0.001392</comp>
     </nuclide>
   </recipe>
   
@@ -201,11 +240,27 @@ This example is a benchmark based on the study
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>2.95</comp>
+      <comp>0.001105</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>97.05</comp>
+      <comp>0.551383</comp>
+    </nuclide>
+    <nuclide>
+      <id>PU239</id>
+      <comp>0.005992</comp>
+    </nuclide>
+    <nuclide>
+      <id>PU240</id>
+      <comp>0.00171</comp>
+    </nuclide>
+    <nuclide>
+      <id>PU241</id>
+      <comp>0.000899</comp>
+    </nuclide>
+    <nuclide>
+      <id>PU242</id>
+      <comp>0.000211</comp>
     </nuclide>
   </recipe>
 

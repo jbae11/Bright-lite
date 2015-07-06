@@ -318,7 +318,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     for(int i = 0; i < region+1; i++){
         dd2[i] = D[i]/delta/delta;
     }
-
+/*
     if((R[region-1]-R[region-2])/delta < 2.99){
         cout << "  Warning, too few discrete points in spatial flux calc." << endl;
         int last = region;
@@ -345,10 +345,21 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     }
     NC[region] += 1;
     NTotal += 1;
+*/
+
+    N[0] = 24;
+    N[1] = 9;
+    N[2] = 9;
+    N[3] = 3;
+    NC[0] = 24;
+    NC[1] = 33;
+    NC[2] = 42;
+    NC[3] = 46;
+    NTotal = 46;
 
     cout << " --input parameters-- " << endl;
     for(int i = 0; i < region+1; i++){
-        cout << " " << i+1 << " R:" << R[i] << " N:" << N[i] << " Siga:" << Sigma_a[i] << " nSigf:" << NuSigma_f[i] << endl;
+        //cout << " " << i+1 << " R:" << R[i] << " N:" << N[i] << " Siga:" << Sigma_a[i] << " nSigf:" << NuSigma_f[i] << endl;
         //cout << "     D:" << D[i] << " LSquared:" << LSquared[i] << " dd2:" << dd2[i] << " Sigtr: " << Sigma_tr[i] << endl;
     }
     //cout << " size:" << NTotal << endl;
@@ -498,8 +509,13 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
         core.batch[i].rflux = flux[i];
     }
 
-    ///temporary!
-    core.CR = NTotal;
+    ///temporary, among many things in this branch
+    core.CR = prod/prod_prev;
+
+    cout << " fluxes: ";
+    for(int i = 0; i < region+1; i++){
+        cout << flux[i] << "  ";
+    }cout << endl;
 
     return core;
 }
@@ -518,7 +534,7 @@ double kcalc(fuelBundle &core){
     //finds the index j where fluence is just under target, then interpolates
     //  to find the prod and dest values for each batch
     int j;
-    for(int i = 0; i < N; i++){
+    for(int i = 0; i < N-1; i++){
 
         if(core.batch[i].collapsed_iso.fluence.back() < core.batch[i].Fg){
             //cout << endl << "Maximum fluence error! Batch fluence exceeded max library fluence. (kcalc)" << endl;
@@ -716,7 +732,7 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
     kcore = 3.141592;
 
     //more forward in time until kcore drops under 1
-    while(kcore > 1){
+    while(cycle < 20){
         kcore_prev = kcore;
 
         if(cycle % ds ==0){
@@ -750,12 +766,14 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
             core = DA_calc(core);
         }
 
+        core.base_flux = 2E15;
+
         bu1 = 0;
         bu2 = 0;
         //update fluences
         for(int i = 0; i < N; i++){
             bu1 += core.batch[i].return_BU();
-            //cout << "flux: " << core.batch[i].rflux << endl;
+            cout << "flux: " << core.batch[i].rflux << " fluence: " << core.batch[i].Fg << endl;
             core.batch[i].Fg += core.batch[i].rflux * core.base_flux * dt;
             bu2 += core.batch[i].return_BU();
         }
@@ -763,25 +781,29 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
         bu1 /= N;
         bu2 /= N;
 
-        //cout << "  BU before: " << bu1 << "  after: " << bu2 << "  power: " << (bu2-bu1)/delta << endl;
+        cout << "  BU before: " << bu1 << "  after: " << bu2 << "  power: " << (bu2-bu1)/delta << endl;
 
         kcore = kcalc(core);
+        kcore = core.CR;
+        cout << " k:" << kcore << endl;
     }
 
     //update CR
     ///core.CR = CR_finder(core);
     core.batch[0].discharge_CR = CR_batch(core, 0);
-
+/*
     //update core fluences
     for(int i = 0; i < N; i++){
         core.batch[i].batch_fluence = intpol(core.batch[i].Fg - (core.batch[i].rflux * core.base_flux * dt), core.batch[i].Fg, kcore_prev, kcore, 1);
         core.batch[i].Fg = core.batch[i].batch_fluence;
     }
+*/
 
     int ii;
     //update current composition of batches
     for(int i = 0; i < N; i++){
         //core.batch[i].comp.clear();
+        cout << " fluence:" << core.batch[i].Fg << endl;
 
         for(ii = 0; core.batch[i].collapsed_iso.fluence[ii] < core.batch[i].batch_fluence; ii++){}
 
