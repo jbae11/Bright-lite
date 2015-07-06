@@ -480,30 +480,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     //cout << "--- A ---" << endl << A << endl << " --- ----" << endl;
     //cout << "---phi---" << endl<< phi << endl << "--------" << endl;
 
-    //find area weighted average phi per batch
-    r = 0;
-    flux[0] = 0;
-    for(int i = 0; i < NTotal; i++){
-        flux[r] += phi(i)*(2*(i+1)-1);
-        sum += (2*(i+1)-1);
 
-        if(i == NC[r] || i == NTotal-1){
-            flux[r] /= sum;
-            sum = 0;
-            r += 1;
-            flux[r] = 0;
-        }
-    }
-    for(r = 0; r < region+1; r++){
-        if(flux[r] > maxflux){
-            maxflux = flux[r];
-        }
-    }
-
-    //normalize the fluxes
-    for(r = 0; r < region+1; r++){
-        flux[r] /= maxflux;
-    }
 
     for(int i = 0; i < core.batch.size(); i++){
         core.batch[i].rflux = flux[i];
@@ -721,11 +698,24 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
     cout << "     " << dt << endl;
     cout << " " << core.batch[0].batch_fluence << " " << core.batch[1].batch_fluence << " " << core.batch[2].batch_fluence  << endl;
 */
+    batch_info temp_bach = core.batch[0];
+    core.batch[0] = core.batch[2];
+    core.batch[2] = temp_bach;
+
+
     //assign the batch_fluence to Fg
     for(int i = 0; i < N; i++){
         core.batch[i].Fg = core.batch[i].batch_fluence;
         //cout << core.batch[i].Fg << "  " << core.batch[i].collapsed_iso.neutron_prod[0] << endl;
         //cout << core.batch[i].collapsed_iso.neutron_prod[1] / core.batch[i].collapsed_iso.neutron_dest[1] << "  ";
+
+        for(int j = 0; j < 10; j++){
+            cout << core.batch[i].collapsed_iso.BU[j] << "   ";
+        }cout << endl;
+
+        for(int j = 0; j < 10; j++){
+            cout << core.batch[i].collapsed_iso.neutron_prod[j]/core.batch[i].collapsed_iso.neutron_dest[j] << "   ";
+        }cout << endl << endl;
     }
     burnup_1 = core.batch[0].return_BU();
 
@@ -773,7 +763,7 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
         //update fluences
         for(int i = 0; i < N; i++){
             bu1 += core.batch[i].return_BU();
-            cout << "flux: " << core.batch[i].rflux << " fluence: " << core.batch[i].Fg << endl;
+            //cout << "flux: " << core.batch[i].rflux << " fluence: " << core.batch[i].Fg << endl;
             core.batch[i].Fg += core.batch[i].rflux * core.base_flux * dt;
             bu2 += core.batch[i].return_BU();
         }
@@ -781,16 +771,20 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
         bu1 /= N;
         bu2 /= N;
 
-        cout << "  BU before: " << bu1 << "  after: " << bu2 << "  power: " << (bu2-bu1)/delta << endl;
+        //cout << "  BU before: " << bu1 << "  after: " << bu2 << "  power: " << (bu2-bu1)/delta << endl;
 
         kcore = kcalc(core);
         kcore = core.CR;
-        cout << " k:" << kcore << endl;
+        //cout << " k:" << kcore << endl;
     }
 
     //update CR
     ///core.CR = CR_finder(core);
     core.batch[0].discharge_CR = CR_batch(core, 0);
+    cout << " driver CR:" << CR_batch(core, 0) << endl;
+    cout << " blanket CR:" << CR_batch(core, 2) << endl;
+
+    cout << " core CR:" << CR_finder(core) << endl;
 /*
     //update core fluences
     for(int i = 0; i < N; i++){
