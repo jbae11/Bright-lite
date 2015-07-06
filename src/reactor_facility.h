@@ -279,7 +279,7 @@ class ReactorFacility : public cyclus::Facility  {
                       "tooltip": "Timestep [days] for the burnup fluence calculation."}
   double burnupcalc_timestep;
 
-  #pragma cyclus var {"default": 2, \
+  #pragma cyclus var {"default": 1, \
                       "userlevel": 3, \
                       "tooltip": "Timestep for the burnup flux calculation, multiple of burnupcalc_timestep. Min=1"}
   int ds;

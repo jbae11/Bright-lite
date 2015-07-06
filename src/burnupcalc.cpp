@@ -257,7 +257,7 @@ double siga_finder(batch_info &batch){
 fuelBundle phicalc_cylindrical(fuelBundle &core){
 //cout << "cylindrical" << endl<<endl<<endl<<endl<<endl;
 
-//the word 'region' is interchanged with the word 'batch' in comments, water layer is the outermost region
+//the word 'region' is interchanged with 'batch' in comments, water layer can be the outermost region
 
     int region = core.batch.size(); // number of regions (batches) not counting the outer region
     double delta = core.cylindrical_delta;
@@ -265,6 +265,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     int N[region+1]; //number of mesh points in each region
     int NC[region+1]; //cumulative N
     int NTotal; //total number of mesh points
+    int iter;
     double dd2[region+1]; // D/delta^2
     double Sigma_a[region+1]; //mac. abs. cs of each region
     double NuSigma_f[region+1]; //nu sigma f of each region
@@ -279,35 +280,32 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
 
     //set the radial thickness of each region
     R[0] = sqrt(core.fuel_area/region/3.141592);
+
     for(int i = 1; i < region; i++){
         R[i] = sqrt(core.fuel_area/region/3.141592*(i+1));
-        cout << "R: " << R[i] << endl;
     }
     R[region] = R[region-1] + core.mod_thickness; //this is the moderator region
 
-
-//
-//    Sigma_a[0] = 0.0230;
-//    Sigma_a[1] = 0.0246;
-//    Sigma_a[2] = 0.0324;
-//    NuSigma_f[0] = 0.0184;
-//    NuSigma_f[1] = 0.0217;
-//    NuSigma_f[2] = 0.0382;
     //assign fuel cross sections
-    cout << "Sigf, Siga:  ";
     for(int i = 0; i < region; i++){
 
         NuSigma_f[i] = nusigf_finder(core.batch[i]);
 
         Sigma_a[i] = siga_finder(core.batch[i]);
 
+    /*    /// comment out!
+        Sigma_a[0] = 0.0230;
+        Sigma_a[1] = 0.0246;
+        Sigma_a[2] = 0.0324;
+        NuSigma_f[0] = 0.0184;
+        NuSigma_f[1] = 0.0217;
+        NuSigma_f[2] = 0.0382;
+        /// till here!  */
+
         Sigma_tr[i] = core.fuel_Sig_tr;
         D[i] = 1/(Sigma_tr[i]*3.);
         LSquared[i] = D[i]/Sigma_a[i];
-
-        cout << NuSigma_f[i] << ", " << Sigma_a[i] << " | ";
-
-    } cout << endl;
+    }
 
     //assign moderator cross sections
     Sigma_a[region] = 0.0066;// core.mod_Sig_a;
@@ -321,24 +319,40 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
         dd2[i] = D[i]/delta/delta;
     }
 
-
-    cout << "Compositions in cylindrical calc: " << endl;
-    for(int r = 0; r < region+1; r++){
-        //cout << core.batch[r].comp[922350] << "  ";
-    } cout << endl;
+    if((R[region-1]-R[region-2])/delta < 2.99){
+        cout << "  Warning, too few discrete points in spatial flux calc." << endl;
+        int last = region;
+        if(region == 1){last = 2;}
+        delta = (R[last-1]-R[last-2])/3;
+        core.cylindrical_delta = delta;
+        cout << "    Delta will be changed to " << delta << " [cm]." << endl;
+    }
 
     //populate N, number of mesh points in each region
-    N[0] = R[0]/delta;
+    N[0] = round(R[0]/delta);
     NC[0] = N[0];
     NTotal = N[0];
-/*
+
     for(int i = 1; i < region+1; i++){
-        N[i] = ceil((R[i] - R[i-1]) / delta);
+        N[i] = round((R[i] - R[i-1]) / delta);
+        if(N[i] < 3){
+            cout << "  Warning! Region " << i+1 << " has too few discrete points (" << N[i] << ").  - Increase fuel_area or mod_thickness." << endl;
+            core = phicalc_simple(core);
+            return core;
+        }
         NC[i] = NC[i-1] + N[i];
         NTotal += N[i];
     }
     NC[region] += 1;
     NTotal += 1;
+
+    cout << " --input parameters-- " << endl;
+    for(int i = 0; i < region+1; i++){
+        cout << " " << i+1 << " R:" << R[i] << " N:" << N[i] << " Siga:" << Sigma_a[i] << " nSigf:" << NuSigma_f[i] << endl;
+        //cout << "     D:" << D[i] << " LSquared:" << LSquared[i] << " dd2:" << dd2[i] << " Sigtr: " << Sigma_tr[i] << endl;
+    }
+    //cout << " size:" << NTotal << endl;
+
     Eigen::MatrixXf A(NTotal, NTotal);
     Eigen::MatrixXf F(NTotal, 1);
     Eigen::MatrixXf phi(NTotal, 1);
@@ -361,7 +375,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
             r += 1;
         }
         if(core.batch[r].rflux < 1.1 && core.batch[r].rflux > 0){
-            phi_prev(i) = core.batch[r].rflux; //uses last runs results if available
+            phi_prev(i) = 1;//core.batch[r].rflux; //uses last runs results if available
         } else{
             phi_prev(i) = 1;
         }
@@ -372,6 +386,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     A(NTotal-1,NTotal-1) = 1;
     phi_prev(NTotal-1) = 0;
 
+    // boundary conditions
     for(r = 0; r < region; r++){
         A(NC[r],NC[r]-1) = D[r];
         A(NC[r],NC[r]) = -D[r]-D[r+1];
@@ -383,20 +398,14 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
         if(i != NC[r]){
             F(i) = NuSigma_f[r];
         }
-        if( i == NC[r]){
-            r += 1;
-        }
+        if( i == NC[r]){r += 1;}
         S_prev(i) = F(i)*phi_prev(i);
     }
 
-
-    for(int iter = 0; iter < 10; iter++){
+    for(iter = 0; iter < 100; iter++){
         phi = A.colPivHouseholderQr().solve(S_prev)/k_prev;
 
-
-        if(!phi.allFinite()){
-            phi = phi_prev;
-        }
+        if(!phi.allFinite()){phi = phi_prev;}
 
         S = F.array() * phi.array();
 
@@ -417,20 +426,48 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
             }
         }
 
-        if(abs((k_prev-k)/k) < 0.01 && iter > 3){
-            break;
-        }
+        if(abs((k_prev-k)/k) < 0.001 && iter > 3){break;}
         //cout << "prod: " << prod << "  prod_prev: " << prod_prev << "  k: " << prod/prod_prev << endl;
         k = prod/prod_prev*k_prev;
         phi_prev = phi;
         k_prev = k;
         S_prev = S;
-
-
     }
 
-    //NO NEED TO normalize phi
-    //phi = phi.array()/phi.maxCoeff();
+    //find area weighted average phi per batch
+    r = 0;
+    flux[0] = 0;
+    for(int i = 0; i < NTotal; i++){
+        if(phi(i) < 0){phi(i) = 0;}
+
+        flux[r] += phi(i)*(2*(i+1)-1);
+        sum += (2*(i+1)-1);
+
+        // uses some trickery to switch between regions
+        if(i == NC[r] || i == NTotal-1){
+            // divide by total area
+            flux[r] /= sum;
+
+            // reset sum and flux of next region
+            sum = 0;
+            r += 1;
+            flux[r] = 0;
+        }
+    }
+    for(r = 0; r < region+1; r++){
+        if(flux[r] > maxflux){
+            maxflux = flux[r];
+        }
+    }
+
+    //normalize the fluxes
+    for(r = 0; r < region+1; r++){
+        flux[r] /= maxflux;
+    }
+
+    //cout << " Iterations:" << iter << " k:" << k << endl;
+    //cout << "--- A ---" << endl << A << endl << " --- ----" << endl;
+    //cout << "---phi---" << endl<< phi << endl << "--------" << endl;
 
     //find area weighted average phi per batch
     r = 0;
@@ -452,60 +489,20 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
         }
     }
 
-    //cout << "flux: ";
-    //cout << core.fuel_area << " " << delta << " | " << Sigma_a[0] << " " << Sigma_a[1] << " " << Sigma_a[2] << " | "
-    //<< NuSigma_f[0] << " " << NuSigma_f[1] << " " << NuSigma_f[2] << " | ";
     //normalize the fluxes
     for(r = 0; r < region+1; r++){
         flux[r] /= maxflux;
-        //cout << flux[r] << " ";
     }
-    //ĺcout << endl;
-
-
-
-
-    //NO NEED TO normalize phi
-    //phi = phi.array()/phi.maxCoeff();
-
-    //find area weighted average phi per batch
-    r = 0;
-    flux[0] = 0;
-    for(int i = 0; i < NTotal; i++){
-        flux[r] += phi(i)*(2*(i+1)-1);
-        sum += (2*(i+1)-1);
-
-        if(i == NC[r] || i == NTotal-1){
-            flux[r] /= sum;
-            sum = 0;
-            r += 1;
-            flux[r] = 0;
-        }
-    }
-    for(r = 0; r < region+1; r++){
-        if(flux[r] > maxflux){
-            maxflux = flux[r];
-        }
-    }
-
-    //cout << "flux: ";
-    //cout << core.fuel_area << " " << delta << " | " << Sigma_a[0] << " " << Sigma_a[1] << " " << Sigma_a[2] << " | "
-    //<< NuSigma_f[0] << " " << NuSigma_f[1] << " " << NuSigma_f[2] << " | ";
-    //normalize the fluxes
-    for(r = 0; r < region+1; r++){
-        flux[r] /= maxflux;
-        cout << flux[r] << " ";
-    }
-    cout << endl;
-
 
     for(int i = 0; i < core.batch.size(); i++){
         core.batch[i].rflux = flux[i];
     }
-*/
+
+    ///temporary!
+    core.CR = NTotal;
+
     return core;
 }
-
 
 
 /** Finds the criticality of the core using neutron production and destruction rates **/
@@ -684,7 +681,7 @@ double CR_finder(fuelBundle &core){
 }
 
 /** Increases fluence until k drops under 1 **/
-void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta) {
+void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
     //this function only uses the COLLAPSED_ISO of each BATCH in the structure CORE
     //all factors that contribute to a change in neutron prod/dest rates have to be factored
     //before calling this function
@@ -696,6 +693,11 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta) {
     double kcore, kcore_prev;
     double y0, y1;
     double burnup = 0, burnup_1 = 0;
+    double bu1, bu2;
+
+    int cycle = 0;
+    int spatial = 0;
+
 /*
     cout << "burnupcalc starting neutron prods: " << core.batch[0].collapsed_iso.neutron_prod[0] << " " << core.batch[1].collapsed_iso.neutron_prod[0] << " " << core.batch[2].collapsed_iso.neutron_prod[0]  << endl;
     cout << "   " << core.batch[0].collapsed_iso.BU[1] << " " << core.batch[1].collapsed_iso.BU[1] << " " << core.batch[2].collapsed_iso.BU[1]  << endl;
@@ -717,42 +719,57 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta) {
     while(kcore > 1){
         kcore_prev = kcore;
 
-        //find the normalized relative flux of each batch
-        if(mode == 1){
-            //simplest case, all batches get the same flux
-            for(int i = 0; i < N; i++){
-                core.batch[i].rflux = 1;
+        if(cycle % ds ==0){
+            //find the normalized relative flux of each batch
+            if(mode == 1){
+                //simplest case, all batches get the same flux
+                for(int i = 0; i < N; i++){
+                    core.batch[i].rflux = 1;
+                }
+            }else if(mode == 2){
+                //inverse-production flux calculation
+                core = phicalc_simple(core);
+            }else if(mode == 3){
+                // UNDER DEVELOPMENT
+                core = phicalc_cylindrical(core);
+                spatial++;
+            }else if(mode == 0){
+                // equal power sharing assumption method
+                core = phicalc_eqpow(core, dt);
+            }else{
+                cout << endl << "Error in mode input for batch-level flux calculation." << endl;
+                return;
             }
-        }else if(mode == 2){
-            //inverse-production flux calculation
-            core = phicalc_simple(core);
-        }else if(mode == 3){
-            // UNDER DEVELOPMENT
-            //core = phicalc_cylindrical(core);
-        }else if(mode == 0){
-            // equal power sharing assumption method
-            core = phicalc_eqpow(core, dt);
-        }else{
-            cout << endl << "Error in mode input for batch-level flux calculation." << endl;
-            return;
         }
+
+        // new cycle
+        cycle++;
 
         //disadvantage calculation
         if(DA_mode == 1){
             core = DA_calc(core);
         }
 
+        bu1 = 0;
+        bu2 = 0;
         //update fluences
         for(int i = 0; i < N; i++){
+            bu1 += core.batch[i].return_BU();
             //cout << "flux: " << core.batch[i].rflux << endl;
             core.batch[i].Fg += core.batch[i].rflux * core.base_flux * dt;
-
+            bu2 += core.batch[i].return_BU();
         }
+
+        bu1 /= N;
+        bu2 /= N;
+
+        //cout << "  BU before: " << bu1 << "  after: " << bu2 << "  power: " << (bu2-bu1)/delta << endl;
+
         kcore = kcalc(core);
     }
 
     //update CR
-    core.CR = CR_finder(core);
+    ///core.CR = CR_finder(core);
     core.batch[0].discharge_CR = CR_batch(core, 0);
 
     //update core fluences
@@ -791,7 +808,7 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta) {
     core.batch[0].delta_BU = burnup - burnup_1;
     core.batch[0].discharge_BU = burnup;
     //core.batch[0].CR = CR_numerator(core, 0)/CR_denominator(core, 0);
-    //cout << " End of burnupcalc" << endl;
+    cout << endl << "      timesteps:" << cycle << " flux:" << spatial << " matrix:" << core.CR << endl << endl;
 }
 
 /** Increases fluence until burnup target is met **/

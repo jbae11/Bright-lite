@@ -1,20 +1,20 @@
 <!-- 
 1 Source, 1 LWR, 1 Sink  (plus startup)
-Reactor database: extLWR
+Reactor database: standLWR
 Fuel: Uranium, defined startup
 Batches: 3
 
 This example is a benchmark based on the study
 	'Economics of the Nucleaar Fuel Cycle' by NEA
-	data found for PWR 42 500 MWd/t reactor in Table 5.6
+	data found for PWR 33 000 MWd/t reactor in Table 7.2
 
-"time cyclus examples/LWR42forward.xml" = real	0m3.9s (2015/05/18)
+"time cyclus examples/LWR33forward.xml" = real	0m3.9s (2015/05/18)
 
 -->
 
 <simulation>
   <control>
-    <duration>50</duration>
+    <duration>11</duration>
     <startmonth>1</startmonth>
     <startyear>2000</startyear>
   </control>
@@ -33,7 +33,7 @@ This example is a benchmark based on the study
       <Source>
         <commod>freshFuel</commod>
         <recipe_name>commod_recipe</recipe_name>
-	<capacity>5000000</capacity>
+	<capacity>50000</capacity>
       </Source>
     </config>
   </facility>
@@ -44,7 +44,7 @@ This example is a benchmark based on the study
       <Source>
         <commod>freshFuel1</commod>
         <recipe_name>commod_recipe1</recipe_name>
-	<capacity>350000.0</capacity>
+	<capacity>35000.0</capacity>
       </Source>
     </config>
   </facility>
@@ -55,7 +55,7 @@ This example is a benchmark based on the study
       <Source>
         <commod>freshFuel2</commod>
         <recipe_name>commod_recipe2</recipe_name>
-	<capacity>350000.0</capacity>
+	<capacity>35000.0</capacity>
       </Source>
     </config>
   </facility>
@@ -66,18 +66,7 @@ This example is a benchmark based on the study
       <Source>
         <commod>freshFuel3</commod>
         <recipe_name>commod_recipe3</recipe_name>
-	<capacity>350000.0</capacity>
-      </Source>
-    </config>
-  </facility>
-
-  <facility>
-    <name>Source4</name>
-    <config>
-      <Source>
-        <commod>freshFuel4</commod>
-        <recipe_name>commod_recipe4</recipe_name>
-	<capacity>350000.0</capacity>
+	<capacity>35000.0</capacity>
       </Source>
     </config>
   </facility>
@@ -103,26 +92,18 @@ This example is a benchmark based on the study
             <val>freshFuel1</val>
             <val>freshFuel2</val>
             <val>freshFuel3</val> 
-            <val>freshFuel4</val> 
         </in_commods>
         <out_commod>uf</out_commod>
-        <libraries><val>extLWR</val></libraries>
+        <libraries><val>standLWR</val></libraries>
         <target_burnup>0.0</target_burnup>
-        <nonleakage>0.9751</nonleakage>
-        <core_mass>112000</core_mass>
-        <generated_power>4170</generated_power>
+        <nonleakage>0.9565</nonleakage>
+        <core_mass>104100</core_mass>
+        <generated_power>4020</generated_power>
+	<efficiency>.34577</efficiency>
         <batches>3</batches>
         <flux_mode>3</flux_mode>
-        <reactor_life>480</reactor_life>
+        <burnupcalc_timestep>50</burnupcalc_timestep>
         <DA_mode>0</DA_mode>
-
-        <burnupcalc_timestep>10</burnupcalc_timestep>
-	<ds>2</ds>	
-	<cylindrical_delta>0.8</cylindrical_delta>
-
-
-	<cycle_length>2</cycle_length>
-	<max_cycles>15</max_cycles>
         <CR_fissile>
             <val>902250</val>
             <val>902270</val>
@@ -162,10 +143,6 @@ This example is a benchmark based on the study
         <entry>
           <prototype>Source3</prototype>
           <number>1</number>
-        </entry>  
-        <entry>
-          <prototype>Source4</prototype>
-          <number>1</number>
         </entry>     
         <entry>
           <prototype>Rx</prototype>
@@ -185,11 +162,11 @@ This example is a benchmark based on the study
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>3.6</comp>
+      <comp>3.1</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>96.4</comp>
+      <comp>96.9</comp>
     </nuclide>
   </recipe>
   
@@ -198,11 +175,11 @@ This example is a benchmark based on the study
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>1.8</comp>
+      <comp>1.5</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>98.2</comp>
+      <comp>98.5</comp>
     </nuclide>
   </recipe>
   
@@ -211,11 +188,11 @@ This example is a benchmark based on the study
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>2.204</comp>
+      <comp>2.4</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>97.796</comp>
+      <comp>97.6</comp>
     </nuclide>
   </recipe>
   
@@ -224,24 +201,11 @@ This example is a benchmark based on the study
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>2.656</comp>
+      <comp>2.95</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>97.344</comp>
-    </nuclide>
-  </recipe>
-  
-  <recipe>
-    <name>commod_recipe4</name>
-    <basis>mass</basis>
-    <nuclide>
-      <id>U235</id>
-      <comp>3.1</comp>
-    </nuclide>
-    <nuclide>
-      <id>U238</id>
-      <comp>96.9</comp>
+      <comp>97.05</comp>
     </nuclide>
   </recipe>
 
