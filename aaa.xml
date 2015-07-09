@@ -97,17 +97,17 @@ This example is a benchmark based on the study
         <libraries><val>FR25MOX</val></libraries>
         <target_burnup>0.0</target_burnup>
         <nonleakage>1</nonleakage>
-        <core_mass>104100</core_mass>
+        <core_mass>10410</core_mass>
         <generated_power>4020</generated_power>
 	<efficiency>.34577</efficiency>
         <batches>3</batches>
         <flux_mode>3</flux_mode>
-        <burnupcalc_timestep>15</burnupcalc_timestep>
+        <burnupcalc_timestep>16</burnupcalc_timestep>
         <DA_mode>0</DA_mode>
 
 	<fuel_Sig_tr>004.2</fuel_Sig_tr>
 
-	<cylindrical_delta>.020</cylindrical_delta>
+	<cylindrical_delta>1.5</cylindrical_delta>
 	
 	<max_cycles>1</max_cycles>
 

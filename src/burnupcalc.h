@@ -26,6 +26,7 @@ fuelBundle phicalc_simple(fuelBundle &core);
 fuelBundle phicalc_eqpow(fuelBundle &core, double dt);
 double nusigf_finder(batch_info &batch);
 double siga_finder(batch_info &batch);
+double phi_scale(fuelBundle &core, int dt, double power);
 double kcalc(fuelBundle &core);
 void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds);
 void burnupcalc_CR(fuelBundle &core, int mode, int DA_mode, double delta);

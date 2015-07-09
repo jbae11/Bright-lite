@@ -357,7 +357,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     NC[3] = 46;
     NTotal = 46;
 
-    cout << " --input parameters-- " << endl;
+    //cout << " --input parameters-- " << endl;
     for(int i = 0; i < region+1; i++){
         //cout << " " << i+1 << " R:" << R[i] << " N:" << N[i] << " Siga:" << Sigma_a[i] << " nSigf:" << NuSigma_f[i] << endl;
         //cout << "     D:" << D[i] << " LSquared:" << LSquared[i] << " dd2:" << dd2[i] << " Sigtr: " << Sigma_tr[i] << endl;
@@ -488,12 +488,12 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
 
     ///temporary, among many things in this branch
     core.CR = prod/prod_prev;
-
+/*
     cout << " fluxes: ";
     for(int i = 0; i < region+1; i++){
         cout << flux[i] << "  ";
     }cout << endl;
-
+*/
     return core;
 }
 
@@ -673,6 +673,50 @@ double CR_finder(fuelBundle &core){
     return CR;
 }
 
+/** Finds the phi_scale that yields the correct power production within dt **/
+double phi_scale(fuelBundle &core, int dt, double power){
+// dt must be in [days]
+    int const N = core.batch.size();
+    int ii;
+    int iter = 0;
+    double phi = core.base_flux;
+    double BU_prev = 0;
+    double BU_next;
+    double fg_temp;
+    double gpower;
+    double err = 1;
+
+    for(int i = 0; i < N; i++){
+        BU_prev += core.batch[i].return_BU();
+    }
+    BU_prev /= N;
+
+    while(err > 0.1 && iter < 20){
+        BU_next = 0;
+        for(int i = 0; i < N; i++){
+            // increases the fluence and stores it outside of core
+            fg_temp = core.batch[i].Fg + dt * core.batch[i].rflux * phi;
+
+            // finds the BU using fg_temp
+            for(ii = 0; core.batch[i].collapsed_iso.fluence[ii] <= fg_temp; ii++){}
+            BU_next += core.batch[i].collapsed_iso.BU[ii-1] + ((core.batch[i].collapsed_iso.BU[ii]-core.batch[i].collapsed_iso.BU[ii-1])*
+                    (fg_temp - core.batch[i].collapsed_iso.fluence[ii-1])/(core.batch[i].collapsed_iso.fluence[ii] - core.batch[i].collapsed_iso.fluence[ii-1]));
+        }
+        BU_next /= N;
+
+        gpower = (BU_next-BU_prev)*core.base_mass/dt;
+
+        err = gpower/power;
+        phi /= err;
+        cout << " gpower:" << gpower << "  power:" << power;
+        cout << "  error:" << err << "  next phi guess:" << phi << endl;
+
+        iter++;
+    }
+    return phi;
+}
+
+
 /** Increases fluence until k drops under 1 **/
 void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
     //this function only uses the COLLAPSED_ISO of each BATCH in the structure CORE
@@ -681,13 +725,14 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
     // oldest batch n=0
     //cout << endl << "Burnupcalc" << endl;
 
-    int N = core.batch.size(); //number of batches
+    int const N = core.batch.size(); //number of batches
     double dt = delta*24*60*60; //days to [s]
     double kcore, kcore_prev;
     double y0, y1;
     double burnup = 0, burnup_1 = 0;
     double bu1, bu2;
 
+    int refuel = 1;
     int cycle = 0;
     int spatial = 0;
 
@@ -698,6 +743,7 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
     cout << "     " << dt << endl;
     cout << " " << core.batch[0].batch_fluence << " " << core.batch[1].batch_fluence << " " << core.batch[2].batch_fluence  << endl;
 */
+    // initial ordering coming from cycllus
     batch_info temp_bach = core.batch[0];
     core.batch[0] = core.batch[2];
     core.batch[2] = temp_bach;
@@ -721,62 +767,77 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
 
     kcore = 3.141592;
 
-    //more forward in time until kcore drops under 1
-    while(cycle < 20){
-        kcore_prev = kcore;
 
-        if(cycle % ds ==0){
-            //find the normalized relative flux of each batch
-            if(mode == 1){
-                //simplest case, all batches get the same flux
-                for(int i = 0; i < N; i++){
-                    core.batch[i].rflux = 1;
+    while(refuel < 14){
+        //more forward in time until kcore drops under 1
+        while(cycle < 20){
+            kcore_prev = kcore;
+
+            if(cycle % ds ==0){
+                //find the normalized relative flux of each batch
+                if(mode == 1){
+                    //simplest case, all batches get the same flux
+                    for(int i = 0; i < N; i++){
+                        core.batch[i].rflux = 1;
+                    }
+                }else if(mode == 2){
+                    //inverse-production flux calculation
+                    core = phicalc_simple(core);
+                }else if(mode == 3){
+                    // UNDER DEVELOPMENT
+                    core = phicalc_cylindrical(core);
+                    spatial++;
+                }else if(mode == 0){
+                    // equal power sharing assumption method
+                    core = phicalc_eqpow(core, dt);
+                }else{
+                    cout << endl << "Error in mode input for batch-level flux calculation." << endl;
+                    return;
                 }
-            }else if(mode == 2){
-                //inverse-production flux calculation
-                core = phicalc_simple(core);
-            }else if(mode == 3){
-                // UNDER DEVELOPMENT
-                core = phicalc_cylindrical(core);
-                spatial++;
-            }else if(mode == 0){
-                // equal power sharing assumption method
-                core = phicalc_eqpow(core, dt);
-            }else{
-                cout << endl << "Error in mode input for batch-level flux calculation." << endl;
-                return;
             }
+
+            // new cycle
+            cycle++;
+
+            core.base_flux = 5.4E15;
+
+            bu1 = 0;
+            bu2 = 0;
+            //update fluences
+            for(int i = 0; i < N; i++){
+                bu1 += core.batch[i].return_BU();
+                //cout << "flux: " << core.batch[i].rflux << " fluence: " << core.batch[i].Fg << endl;
+                core.batch[i].Fg += core.batch[i].rflux * core.base_flux * dt;
+                bu2 += core.batch[i].return_BU();
+            }
+
+            bu1 /= N;
+            bu2 /= N;
+
+            //cout << "  BU before: " << bu1 << "  after: " << bu2 << "  power: " << (bu2-bu1)/delta << endl;
+
+            kcore = kcalc(core);
+            kcore = core.CR;
+            //cout << " k:" << kcore << endl;
         }
+        cycle = 0;
 
-        // new cycle
-        cycle++;
+        cout << "---Cycle " << refuel << "  k:" << kcore << " BU:" << core.batch[0].return_BU() << " - " <<core.batch[1].return_BU() << " : " <<core.batch[2].return_BU();
+        cout << "        " << core.batch[0].rflux << " " << core.batch[1].rflux << " " << core.batch[2].rflux << endl;
 
-        //disadvantage calculation
-        if(DA_mode == 1){
-            core = DA_calc(core);
+        // just adjust the fluences of inner two batches
+        core.batch[0].Fg = core.batch[1].Fg;
+        core.batch[1].Fg = 0;
+
+        if(refuel % 5 == 0){
+            // new blanket
+            core.batch[2].Fg = 0;
         }
+        refuel++;
+        cout << "    k before: " << kcalc(core) << endl;
 
-        core.base_flux = 2E15;
-
-        bu1 = 0;
-        bu2 = 0;
-        //update fluences
-        for(int i = 0; i < N; i++){
-            bu1 += core.batch[i].return_BU();
-            //cout << "flux: " << core.batch[i].rflux << " fluence: " << core.batch[i].Fg << endl;
-            core.batch[i].Fg += core.batch[i].rflux * core.base_flux * dt;
-            bu2 += core.batch[i].return_BU();
-        }
-
-        bu1 /= N;
-        bu2 /= N;
-
-        //cout << "  BU before: " << bu1 << "  after: " << bu2 << "  power: " << (bu2-bu1)/delta << endl;
-
-        kcore = kcalc(core);
-        kcore = core.CR;
-        //cout << " k:" << kcore << endl;
     }
+
 
     //update CR
     ///core.CR = CR_finder(core);
