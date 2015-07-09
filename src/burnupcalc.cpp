@@ -293,14 +293,14 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
 
         Sigma_a[i] = siga_finder(core.batch[i]);
 
-    /*    /// comment out!
-        Sigma_a[0] = 0.0230;
-        Sigma_a[1] = 0.0246;
-        Sigma_a[2] = 0.0324;
-        NuSigma_f[0] = 0.0184;
-        NuSigma_f[1] = 0.0217;
-        NuSigma_f[2] = 0.0382;
-        /// till here!  */
+        /// comment out!
+//        Sigma_a[0] = 0.0230;
+//        Sigma_a[1] = 0.0246;
+//        Sigma_a[2] = 0.0324;
+//        NuSigma_f[0] = 0.0184;
+//        NuSigma_f[1] = 0.0217;
+//        NuSigma_f[2] = 0.0382;
+        /// till here!
 
         Sigma_tr[i] = core.fuel_Sig_tr;
         D[i] = 1/(Sigma_tr[i]*3.);

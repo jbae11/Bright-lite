@@ -12,7 +12,6 @@
 #include "origenBuilder.h"
 #include "cyclus.h"
 
-#include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Eigenvalues>
 
 #include <stdio.h>
