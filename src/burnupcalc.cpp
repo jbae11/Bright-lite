@@ -511,7 +511,7 @@ double kcalc(fuelBundle &core){
     //finds the index j where fluence is just under target, then interpolates
     //  to find the prod and dest values for each batch
     int j;
-    for(int i = 0; i < N-1; i++){
+    for(int i = 0; i < N; i++){
 
         if(core.batch[i].collapsed_iso.fluence.back() < core.batch[i].Fg){
             //cout << endl << "Maximum fluence error! Batch fluence exceeded max library fluence. (kcalc)" << endl;
@@ -768,7 +768,7 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
     kcore = 3.141592;
 
 
-    while(refuel < 14){
+    while(refuel < 26){
         //more forward in time until kcore drops under 1
         while(cycle < 20){
             kcore_prev = kcore;
@@ -799,7 +799,7 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
             // new cycle
             cycle++;
 
-            core.base_flux = 5.4E15;
+            core.base_flux = 5.54E15;
 
             bu1 = 0;
             bu2 = 0;
@@ -825,6 +825,29 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
         cout << "---Cycle " << refuel << "  k:" << kcore << " BU:" << core.batch[0].return_BU() << " - " <<core.batch[1].return_BU() << " : " <<core.batch[2].return_BU();
         cout << "        " << core.batch[0].rflux << " " << core.batch[1].rflux << " " << core.batch[2].rflux << endl;
 
+        int ii;
+        //update current composition of batches
+        for(int i = 0; i < N; i++){
+            //core.batch[i].comp.clear();
+            for(ii = 0; core.batch[i].collapsed_iso.fluence[ii] < core.batch[i].Fg; ii++){}
+
+            // finds the interpolation slope to use for faster interpolation
+            double slope = (core.batch[i].Fg - core.batch[i].collapsed_iso.fluence[ii-1])
+                /(core.batch[i].collapsed_iso.fluence[ii] - core.batch[i].collapsed_iso.fluence[ii-1]);
+
+            for(int j = 0; j < core.batch[i].collapsed_iso.iso_vector.size(); j++){
+                core.batch[i].comp[core.batch[i].collapsed_iso.iso_vector[j].name] =
+                    (core.batch[i].collapsed_iso.iso_vector[j].mass[ii-1] + (core.batch[i].collapsed_iso.iso_vector[j].mass[ii]
+                    - core.batch[i].collapsed_iso.iso_vector[j].mass[ii-1])*slope)/1000;
+            }
+        }
+
+        cout << "   U235 " << core.batch[0].comp[922350] << " Pu239 " << core.batch[0].comp[942390] << " Pu240 " << core.batch[0].comp[942400] << " Pu241 " << core.batch[0].comp[942410]
+                << " Pu242 " << core.batch[0].comp[942420] << " Am241 " << core.batch[0].comp[952410] << " Am243 " << core.batch[0].comp[952430] << endl;
+
+        cout << "   U235 " << core.batch[1].comp[922350] << " Pu239 " << core.batch[1].comp[942390] << " Pu240 " << core.batch[1].comp[942400] << " Pu241 " << core.batch[1].comp[942410]
+                << " Pu242 " << core.batch[1].comp[942420] << " Am241 " << core.batch[1].comp[952410] << " Am243 " << core.batch[1].comp[952430] << endl;
+
         // just adjust the fluences of inner two batches
         core.batch[0].Fg = core.batch[1].Fg;
         core.batch[1].Fg = 0;
@@ -834,7 +857,6 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
             core.batch[2].Fg = 0;
         }
         refuel++;
-        cout << "    k before: " << kcalc(core) << endl;
 
     }
 
