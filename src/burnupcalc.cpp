@@ -684,7 +684,7 @@ double CR_finder(fuelBundle &core){
 }
 
 /** Increases fluence until k drops under 1 **/
-void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta) {
+void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
     //this function only uses the COLLAPSED_ISO of each BATCH in the structure CORE
     //all factors that contribute to a change in neutron prod/dest rates have to be factored
     //before calling this function
