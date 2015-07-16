@@ -112,11 +112,19 @@ This example is a benchmark based on the study
         <core_mass>112000</core_mass>
         <generated_power>4170</generated_power>
         <batches>3</batches>
-        <flux_mode>0</flux_mode>
+        <flux_mode>3</flux_mode>
         <reactor_life>480</reactor_life>
         <burnupcalc_timestep>60</burnupcalc_timestep>
         <DA_mode>0</DA_mode>	
-	<max_cycles>10</max_cycles>
+	<max_cycles>8</max_cycles>
+
+	<fuel_area>100</fuel_area>
+	<cylindrical_delta>.15</cylindrical_delta>
+	<mod_Sig_a>0.0012</mod_Sig_a>
+	<mod_Sig_tr>0.18</mod_Sig_tr>
+	<mod_thickness>10</mod_thickness>
+	<fuel_Sig_tr>0.42368</fuel_Sig_tr>
+
         <CR_fissile>
             <val>902250</val>
             <val>902270</val>
@@ -192,11 +200,11 @@ This example is a benchmark based on the study
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>1.8</comp>
+      <comp>4</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>98.2</comp>
+      <comp>96</comp>
     </nuclide>
   </recipe>
   
@@ -205,11 +213,11 @@ This example is a benchmark based on the study
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>2.204</comp>
+      <comp>4</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>97.796</comp>
+      <comp>96</comp>
     </nuclide>
   </recipe>
   
@@ -218,11 +226,11 @@ This example is a benchmark based on the study
     <basis>mass</basis>
     <nuclide>
       <id>U235</id>
-      <comp>2.656</comp>
+      <comp>4</comp>
     </nuclide>
     <nuclide>
       <id>U238</id>
-      <comp>97.344</comp>
+      <comp>96</comp>
     </nuclide>
   </recipe>
   

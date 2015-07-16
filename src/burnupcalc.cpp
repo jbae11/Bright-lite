@@ -281,7 +281,6 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     R[0] = sqrt(core.fuel_area/region/3.141592);
     for(int i = 1; i < region; i++){
         R[i] = sqrt(core.fuel_area/region/3.141592*(i+1));
-        cout << "R: " << R[i] << endl;
     }
     R[region] = R[region-1] + core.mod_thickness; //this is the moderator region
 
@@ -294,7 +293,6 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
 //    NuSigma_f[1] = 0.0217;
 //    NuSigma_f[2] = 0.0382;
     //assign fuel cross sections
-    cout << "Sigf, Siga:  ";
     for(int i = 0; i < region; i++){
 
         NuSigma_f[i] = nusigf_finder(core.batch[i]);
@@ -305,9 +303,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
         D[i] = 1/(Sigma_tr[i]*3.);
         LSquared[i] = D[i]/Sigma_a[i];
 
-        cout << NuSigma_f[i] << ", " << Sigma_a[i] << " | ";
-
-    } cout << endl;
+    }
 
     //assign moderator cross sections
     Sigma_a[region] = 0.0066;// core.mod_Sig_a;
@@ -321,11 +317,6 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
         dd2[i] = D[i]/delta/delta;
     }
 
-
-    cout << "Compositions in cylindrical calc: " << endl;
-    for(int r = 0; r < region+1; r++){
-        //cout << core.batch[r].comp[922350] << "  ";
-    } cout << endl;
 
     //populate N, number of mesh points in each region
     N[0] = R[0]/delta;
@@ -494,10 +485,7 @@ fuelBundle phicalc_cylindrical(fuelBundle &core){
     //normalize the fluxes
     for(r = 0; r < region+1; r++){
         flux[r] /= maxflux;
-        cout << flux[r] << " ";
     }
-    cout << endl;
-
 
     for(int i = 0; i < core.batch.size(); i++){
         core.batch[i].rflux = flux[i];
@@ -728,7 +716,7 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
             core = phicalc_simple(core);
         }else if(mode == 3){
             // UNDER DEVELOPMENT
-            //core = phicalc_cylindrical(core);
+            core = phicalc_cylindrical(core);
         }else if(mode == 0){
             // equal power sharing assumption method
             core = phicalc_eqpow(core, dt);
@@ -784,6 +772,12 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
                 - core.batch[i].collapsed_iso.iso_vector[j].mass[ii-1])*slope)/1000;
         }
     }
+
+    cout << "   U235 " << core.batch[0].comp[922350] << " Pu239 " << core.batch[0].comp[942390] << " Pu240 " << core.batch[0].comp[942400] << " Pu241 " << core.batch[0].comp[942410]
+            << " Pu242 " << core.batch[0].comp[942420] << " Am241 " << core.batch[0].comp[952410] << " Am243 " << core.batch[0].comp[952430] << endl;
+
+    cout << "   U235 " << core.batch[1].comp[922350] << " Pu239 " << core.batch[1].comp[942390] << " Pu240 " << core.batch[1].comp[942400] << " Pu241 " << core.batch[1].comp[942410]
+            << " Pu242 " << core.batch[1].comp[942420] << " Am241 " << core.batch[1].comp[952410] << " Am243 " << core.batch[1].comp[952430] << endl;
 
     //the oldest batch is index=0
     burnup = core.batch[0].return_BU();
