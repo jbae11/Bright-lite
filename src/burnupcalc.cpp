@@ -845,8 +845,11 @@ void burnupcalc(fuelBundle &core, int mode, int DA_mode, double delta, int ds) {
         cout << "   U235 " << core.batch[0].comp[922350] << " Pu239 " << core.batch[0].comp[942390] << " Pu240 " << core.batch[0].comp[942400] << " Pu241 " << core.batch[0].comp[942410]
                 << " Pu242 " << core.batch[0].comp[942420] << " Am241 " << core.batch[0].comp[952410] << " Am243 " << core.batch[0].comp[952430] << endl;
 
-        cout << "   U235 " << core.batch[1].comp[922350] << " Pu239 " << core.batch[1].comp[942390] << " Pu240 " << core.batch[1].comp[942400] << " Pu241 " << core.batch[1].comp[942410]
-                << " Pu242 " << core.batch[1].comp[942420] << " Am241 " << core.batch[1].comp[952410] << " Am243 " << core.batch[1].comp[952430] << endl;
+        cout << "   first cycle fissile isotope content: " << core.batch[0].comp[922330] + core.batch[0].comp[922350] + core.batch[0].comp[942390] + core.batch[0].comp[942410]
+                + core.batch[0].comp[962420] + core.batch[0].comp[962440] << endl;
+
+        cout << "   U235 " << core.batch[2].comp[922350] << " Pu239 " << core.batch[2].comp[942390] << " Pu240 " << core.batch[2].comp[942400] << " Pu241 " << core.batch[2].comp[942410]
+                << " Pu242 " << core.batch[2].comp[942420] << " Am241 " << core.batch[2].comp[952410] << " Am243 " << core.batch[2].comp[952430] << endl;
 
         // just adjust the fluences of inner two batches
         core.batch[0].Fg = core.batch[1].Fg;
