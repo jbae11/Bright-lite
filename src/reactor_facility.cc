@@ -79,7 +79,12 @@ void ReactorFacility::Tick() {
     if(shutdown == true){return;}
     cyclus::Context* ctx = context();
     if(fuel_library_.name.size() == 0){
-        cyclus::Context* ctx = context();
+        ///Adding burnup steps
+        burnup_time[0] = 23;
+        burnup_time[500] = 46;
+        ///Availability steps
+        availability_time[0] = 0.6;
+        availability_time[600] = 0.9;
         if(target_burnup == 0){
             std::cout << ctx->time()<< " New " << libraries[0] << " reactor (ID:" << id() << ") starting up in forward mode." << std::endl;
         } else {
@@ -149,19 +154,33 @@ void ReactorFacility::Tick() {
             fuel_library_.batch.push_back(empty_batch);
             fuel_library_.batch[i].batch_fluence = 0; //fluence of the batch is set to zero
             fuel_library_.batch[i].DA = 1;
-        }/*
-        core_ = std::vector<fuelBundle>(batches); //core_ is size of batches, which will be changed
-        for(int i = 0; i < core_.size(); i++){
-          core_[i] = fuel_library_[i];
-        }*/
+        }
 
-
-
-        //read list of isotopes for conversion ratio calculation
-   ///inputed as string, should be able to handle just numbers or letter number descrptn of isos
+        ///inputed as string, should be able to handle just numbers or letter number descrptn of isos
         for(int i = 0; i < CR_fissile.size(); i++){
             fuel_library_.CR_fissile.push_back(std::stoi(CR_fissile[i]));
         }
+    }
+    ///quick modification of burnup and availability
+    std::map<int, double>::iterator it;
+    int current_time, current_burnup, current_avail, prev_time = 0, prev_burnup = 0, prev_avail = 0;
+    for(it = burnup_time.begin(); it != burnup_time.end(); ++it){
+        current_time = it->first;
+        current_burnup = burnup_time[it->first];
+        current_avail = availablility_time[it->first];
+        if(it->first == ctx->time){
+            burnup_target = burnup_time[it->first];
+            availability = availability_time[it->first];
+            return;
+        }
+        if(it->first > ctx->time){
+            burnup_target = prev_burnup + (it->first - prev_time)/(current_time - prev_time)(current_burnup - prev_burnup);
+            availability = prev_avail + (it->first - prev_time)/(current_time - prev_time)(current_avail - prev_avail);
+            return;
+        }
+        prev_time = it->first;
+        prev_burnup = burnup_time[it->first];
+        prev_avail = availablility_time[it->first];
     }
     //std::cout << "end tick" << std::endl;
 }
@@ -307,7 +326,7 @@ void ReactorFacility::Tock() {
     if(delta_BU < 0){delta_BU = 0;}
 
     //cycle end update
-    if(cycle_length > 0){
+    /*if(cycle_length > 0){
         cycle_end_ = ctx->time() + cycle_length;
         p_time =  28. * ((delta_BU*core_mass/generated_power/28)-floor(delta_BU*core_mass/generated_power/28));
         //if the cycle length is less than 2 the fluence of batches will build up.
@@ -317,11 +336,11 @@ void ReactorFacility::Tock() {
             cycle_end_ += 3; // this is done to help troubleshoot, results from runs where cycle length has to be adjusted shouldnt be trusted
         }
 
-    } else {
-        //std::cout << " DELTA BU "<<  delta_BU << "  BU_next: " << BU_next << "  BU_prev: " << BU_prev << std::endl;
-        cycle_end_ = ctx->time() + floor(delta_BU*core_mass/generated_power/28.);
-        p_time =  28*((delta_BU*core_mass/generated_power/28)-floor(delta_BU*core_mass/generated_power/28));
-    }
+    } else {*/
+    //std::cout << " DELTA BU "<<  delta_BU << "  BU_next: " << BU_next << "  BU_prev: " << BU_prev << std::endl;
+    cycle_end_ = ctx->time() + floor(delta_BU*core_mass/generated_power/28.);
+    cycle_length = cycle_end - ctx->time();
+    p_time =  28*((delta_BU*core_mass/generated_power/28)-floor(delta_BU*core_mass/generated_power/28));
 
 
     //increments the number of times the reactor has been refueled.

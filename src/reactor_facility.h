@@ -325,7 +325,7 @@ class ReactorFacility : public cyclus::Facility  {
                       "default": 28, \
                       "tooltip": "The amount of time the reactor is offline to load new fuel and shuffle older fuel", \
                       "label": "Outage Period"}
-  double outage_time;
+  double availability;
 
   #pragma cyclus var {"userlevel": 3, \
                       "default": 100, \
@@ -352,7 +352,8 @@ class ReactorFacility : public cyclus::Facility  {
   int steady_state = 0;
   double burnup_per_time;
   double power_per_time;
-
+  std::map<int, double> burnup_time;
+  std::map<int, double> availablility_time;
 };
 
 }  // namespace reactor
