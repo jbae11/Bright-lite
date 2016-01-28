@@ -12,7 +12,7 @@ real	0m3.407s (2015/03/04)
 
 <simulation>
   <control>
-    <duration>600</duration>
+    <duration>700</duration>
     <startmonth>1</startmonth>
     <startyear>2000</startyear>
   </control>
@@ -76,21 +76,48 @@ real	0m3.407s (2015/03/04)
     <name>Rx</name>
     <config>
       <ReactorFacility>
+	<reactor_life>700</reactor_life>
         <in_commods>
             <val>UOX</val>       
         </in_commods>
         <out_commod>uf</out_commod>
-        <libraries><val>extLWR</val></libraries>
+        <libraries><val>standLWR</val></libraries>
         <target_burnup>51</target_burnup>
-        <nonleakage>0.983</nonleakage>
+        <nonleakage>0.94</nonleakage>
         <core_mass>127000.0</core_mass>
-        <generated_power>4212</generated_power>
-        <batches>4</batches>
-        <outage_time>30</outage_time>
+        <generated_power>3700.</generated_power>
+	<reactor_type>BWR</reactor_type>
+        <batches>3</batches>
         <flux_mode>0</flux_mode>        
         <tolerance>0.0001</tolerance>
         <SS_tolerance>0.0001</SS_tolerance>
         <burnupcalc_timestep>60</burnupcalc_timestep>
+	<burnup_time>
+           <item><key>0</key><val>21</val></item>
+           <item><key>120</key><val>21</val></item>
+           <item><key>180</key><val>21.5</val></item>
+           <item><key>240</key><val>21.82</val></item>
+           <item><key>300</key><val>29.42</val></item>
+           <item><key>360</key><val>31.5</val></item>
+           <item><key>420</key><val>34.26</val></item>
+           <item><key>480</key><val>40.98</val></item>
+           <item><key>540</key><val>45.4</val></item>
+           <item><key>600</key><val>46.9</val></item>
+           <item><key>660</key><val>45.96</val></item>
+	</burnup_time>
+	<avail_time>
+           <item><key>0</key><val>54</val></item>
+           <item><key>120</key><val>54</val></item>
+           <item><key>180</key><val>56</val></item>
+           <item><key>240</key><val>58</val></item>
+           <item><key>300</key><val>58</val></item>
+           <item><key>360</key><val>67</val></item>
+           <item><key>420</key><val>74</val></item>
+           <item><key>480</key><val>78</val></item>
+           <item><key>540</key><val>87</val></item>
+           <item><key>600</key><val>91</val></item>
+           <item><key>660</key><val>91</val></item>
+	</avail_time>
         <CR_fissile>
             <val>922350</val>
             <val>942380</val>
@@ -113,7 +140,7 @@ real	0m3.407s (2015/03/04)
 			<fissle_stream>fissile_stream</fissle_stream>
 			<non_fissle_stream>nfissile_stream</non_fissle_stream>
 			<in_commods>
-				<item><key>DU</key><val>0.961</val></item>
+				<item><key>DU</key><val>0</val></item>
 			</in_commods>
 			<out_commod>UOX</out_commod>
 		</FuelfabFacility></config>
@@ -154,7 +181,7 @@ real	0m3.407s (2015/03/04)
 		<config>
 		<DeployInst>
 			<prototypes><val>Rx</val></prototypes>
-			<build_times><val>50</val></build_times>
+			<build_times><val>116</val></build_times>
 			<n_build><val>1</val></n_build>
 		</DeployInst>
 		</config>

@@ -48,26 +48,30 @@ bool stream_check(cyclus::Material::Ptr &mat1, cyclus::Material::Ptr &previous_m
 }
 
 /** A function to output the isotopic composition of a cyclus material*/
-void CompOutMat(cyclus::Material &mat1){
+void CompOutMat(cyclus::Material &mat1, int time){
+    std::ofstream isos;
+    isos.open("isos.temp", std::ios::out|std::ios::app);
     cyclus::CompMap comp;
     comp = mat1.comp()->mass(); //store the fractions of i'th batch in comp
     int comp_iso;
     cyclus::CompMap::iterator it;
     //each iso in comp
     for (it = comp.begin(); it != comp.end(); ++it){
-        //std::cout<<it->first<< " " << it->second << std::endl;
+        isos << time << " " <<it->first<< " " << it->second * mat1.quantity()<< std::endl;
     }
 }
 
 /** A function to output the isotopic composition of a cyclus material pointer*/
-void CompOut(cyclus::Material::Ptr &mat1){
+void CompOut(cyclus::Material::Ptr &mat1, int time, std::string type){
+    std::ofstream isos;
+    isos.open("isos.temp", std::ios::out|std::ios::app);
     cyclus::CompMap comp;
     comp = mat1->comp()->mass(); //store the fractions of i'th batch in comp
     int comp_iso;
     cyclus::CompMap::iterator it;
     //each iso in comp
     for (it = comp.begin(); it != comp.end(); ++it){
-        ///std::cout<<it->first<< " " << it->second << std::endl;
+        isos << time << " " << type << " " <<it->first<< " " << it->second* mat1->quantity() << std::endl;
     }
 }
 
@@ -79,16 +83,11 @@ void ReactorFacility::Tick() {
     if(shutdown == true){return;}
     cyclus::Context* ctx = context();
     if(fuel_library_.name.size() == 0){
-        ///Adding burnup steps
-        burnup_time[0] = 23;
-        burnup_time[500] = 46;
-        ///Availability steps
-        availability_time[0] = 0.6;
-        availability_time[600] = 0.9;
+        cycle_length = 0;
         if(target_burnup == 0){
-            std::cout << ctx->time()<< " New " << libraries[0] << " reactor (ID:" << id() << ") starting up in forward mode." << std::endl;
+            //std::cout << ctx->time()<< " New " << libraries[0] << " reactor (ID:" << id() << ") starting up in forward mode." << std::endl;
         } else {
-            std::cout << ctx->time() << " New " << libraries[0] << " reactor (ID:" << id() << ") starting up - target burnup = " << target_burnup << std::endl;
+            //std::cout << ctx->time() << " New " << libraries[0] << " reactor (ID:" << id() << ") starting up - target burnup = " << target_burnup << std::endl;
         }
         std::string manifest_file = cyclus::Env::GetInstallPath() + "/share/brightlite/" + \
                           libraries[0] + "/manifest.txt";
@@ -115,13 +114,10 @@ void ReactorFacility::Tick() {
             for(int i = 0; i < libraries.size(); i++){
                 fuel_library_.interpol_libs.push_back(libraries[i]);
             }
-            for(std::map<std::string, double>::iterator c = interpol_pairs.begin(); c != interpol_pairs.end(); ++c){
-                interpol_pair pair;
-                pair.metric = c -> first;
-                pair.value = c -> second;
-                fuel_library_.interpol_pairs.push_back(pair);
-            }
-            fuel_library_ = lib_interpol(fuel_library_);
+            interpol_pair temp_pair;
+            temp_pair.metric = "BURNUP";
+            temp_pair.value = 23.;
+            fuel_library_.interpol_pairs.push_back(temp_pair);
         }
         //adds general info about the fuel in fuel_library_
         ///if theres value, dont update field
@@ -162,25 +158,32 @@ void ReactorFacility::Tick() {
         }
     }
     ///quick modification of burnup and availability
-    std::map<int, double>::iterator it;
-    int current_time, current_burnup, current_avail, prev_time = 0, prev_burnup = 0, prev_avail = 0;
-    for(it = burnup_time.begin(); it != burnup_time.end(); ++it){
-        current_time = it->first;
-        current_burnup = burnup_time[it->first];
-        current_avail = availablility_time[it->first];
-        if(it->first == ctx->time){
-            burnup_target = burnup_time[it->first];
-            availability = availability_time[it->first];
-            return;
+    if(ctx->time() == cycle_end_){
+        std::map<int, double>::iterator it;
+        double current_time, current_burnup, current_avail, prev_time = 0., prev_burnup = 0., prev_avail = 54.;
+        for(it = burnup_time.begin(); it != burnup_time.end(); it++){
+            current_time = it->first;
+            current_burnup = burnup_time[it->first];
+            current_avail = avail_time[it->first]*0.01;
+            if(it->first == ctx->time()){
+                target_burnup = burnup_time[it->first];
+                availability = avail_time[it->first]*0.01;
+                //std::cout << target_burnup << " " << availability << std::endl;
+                //fuel_library_.interpol_pairs[0].value = target_burnup;
+                //fuel_library_ = lib_interpol(fuel_library_);
+                return;
+            }
+            if(it->first > ctx->time()){
+                target_burnup = prev_burnup + (cycle_end_+cycle_length*2 - prev_time)/(current_time - prev_time)*(current_burnup - prev_burnup);
+                availability = (prev_avail + (cycle_end_+cycle_length*2 - prev_time)/(current_time - prev_time)*(current_avail - prev_avail));
+                //fuel_library_.interpol_pairs[0].value = target_burnup;
+                //fuel_library_ = lib_interpol(fuel_library_);
+                return;
+            }
+            prev_time = it->first;
+            prev_burnup = burnup_time[it->first];
+            prev_avail = avail_time[it->first]*0.01;
         }
-        if(it->first > ctx->time){
-            burnup_target = prev_burnup + (it->first - prev_time)/(current_time - prev_time)(current_burnup - prev_burnup);
-            availability = prev_avail + (it->first - prev_time)/(current_time - prev_time)(current_avail - prev_avail);
-            return;
-        }
-        prev_time = it->first;
-        prev_burnup = burnup_time[it->first];
-        prev_avail = availablility_time[it->first];
     }
     //std::cout << "end tick" << std::endl;
 }
@@ -208,21 +211,21 @@ void ReactorFacility::Tock() {
             cyclus::toolkit::RecordTimeSeries<cyclus::toolkit::POWER>(this, generated_power*efficiency);
             return;
         } else {
-            if(p_time + outage_time < 28.){
-                p_frac = 1. - outage_time/28.;
+            if(p_time + outage_time_ < 28.){
+                p_frac = 1. - outage_time_/28.;
                 power_per_time = generated_power*p_frac*efficiency;
-            } else if(p_time + outage_time >= 28. && p_time + outage_time < 56.){
-                p_frac = 2-(p_time + outage_time)/28.;
+            } else if(p_time + outage_time_ >= 28. && p_time + outage_time_ < 56.){
+                p_frac = 2-(p_time + outage_time_)/28.;
                 double x = p_time/28.;
                 outage_shutdown = 1;
                 cyclus::toolkit::RecordTimeSeries<cyclus::toolkit::POWER>(this, generated_power*x*efficiency);
                 return;
             } else {
                 outage_shutdown = 2;
-                while (p_time + outage_time > outage_shutdown*28.) {
+                while (p_time + outage_time_ > outage_shutdown*28.) {
                     outage_shutdown++;
                 }
-                p_frac = outage_shutdown-(p_time + outage_time)/28.;
+                p_frac = outage_shutdown-(p_time + outage_time_)/28.;
                 outage_shutdown--;
                 double x = p_time/28.;
                 cyclus::toolkit::RecordTimeSeries<cyclus::toolkit::POWER>(this, generated_power*x*efficiency);
@@ -339,7 +342,11 @@ void ReactorFacility::Tock() {
     } else {*/
     //std::cout << " DELTA BU "<<  delta_BU << "  BU_next: " << BU_next << "  BU_prev: " << BU_prev << std::endl;
     cycle_end_ = ctx->time() + floor(delta_BU*core_mass/generated_power/28.);
-    cycle_length = cycle_end - ctx->time();
+    cycle_length = cycle_end_ - ctx->time();
+    outage_time_ = (cycle_length) * (1.-availability) * 28.;
+    if(outage_time_ < 0){
+        std::cout << "Availability: " << availability << std::endl;
+    }
     p_time =  28*((delta_BU*core_mass/generated_power/28)-floor(delta_BU*core_mass/generated_power/28));
 
 
@@ -349,13 +356,12 @@ void ReactorFacility::Tock() {
   //shutdown check
   if( (ctx->time() > start_time_ + reactor_life && record == true) || (refuels >= max_cycles) ){
     shutdown = true;
-    std::cout << ctx->time() << " Agent " << id() << " shutdown after " << refuels << " cycles. Core CR: " << fuel_library_.CR << "  BU's: " << std::endl;
+    //std::cout << ctx->time() << " " << reactor_type << " shutdown after " << refuels << " cycles. Core CR: " << fuel_library_.CR << "  BU's: " << std::endl;
      for(int i = 0; i < fuel_library_.batch.size(); i++){
         int ii;
         double burnup;
-
         burnup = fuel_library_.batch[i].return_BU();
-        std::cout << " Batch " << i+1 << ": "  << std::setprecision(4) << burnup << std::endl;
+        std::cout << ctx->time() << " " << reactor_type << "  BU: "  << std::setprecision(4) << burnup << std::endl;
             // std::cout << " -> U235: " << fuel_library_.batch[i].comp[922350] << " Fissile Pu: " << fuel_library_.batch[0].comp[942390]
             // + fuel_library_.batch[i].comp[942410] << " Total Pu: " << fuel_library_.batch[i].comp[942380] + fuel_library_.batch[i].comp[942390]
             // + fuel_library_.batch[i].comp[942400] + fuel_library_.batch[i].comp[942410] + fuel_library_.batch[i].comp[942420] << std::endl;
@@ -368,8 +374,9 @@ void ReactorFacility::Tock() {
 
 
   if(shutdown != true && record == true){
-      std::cout << ctx->time() << " Agent " << id() << "  BU: "  << std::setprecision(4) << fuel_library_.batch[0].discharge_BU << "  Batch CR: " <<
-            fuel_library_.batch[0].discharge_CR << " Cycle: " << cycle_end_ - ctx->time() << std::endl;
+      std::cout << ctx->time() << " " << reactor_type << "  BU: "  << std::setprecision(4) << fuel_library_.batch[0].discharge_BU << "  Batch CR: " <<
+            fuel_library_.batch[0].discharge_CR << " Cycle: " << cycle_end_ - ctx->time() << " Outage: " << outage_time_ << " Enrichment "<< ss_fraction <<
+            std::endl;
 /*
         std::cout << " -> U235: " << fuel_library_.batch[0].comp[922350] << " Fissile Pu: " << fuel_library_.batch[0].comp[942390]
             + fuel_library_.batch[0].comp[942410] << " Total Pu: " << fuel_library_.batch[0].comp[942380] + fuel_library_.batch[0].comp[942390]
@@ -527,6 +534,7 @@ void ReactorFacility::GetMatlTrades(const std::vector< cyclus::Trade<cyclus::Mat
     std::vector<std::pair<cyclus::Trade<cyclus::Material>,cyclus::Material::Ptr> >& responses) {
     using cyclus::Material;
     using cyclus::Trade;
+    cyclus::Context* ctx = context();
     //std::cout << "RX getTRADE START" << std::endl;
     std::vector< cyclus::Trade<cyclus::Material> >::const_iterator it;
     //Remove the core loading
@@ -535,12 +543,14 @@ void ReactorFacility::GetMatlTrades(const std::vector< cyclus::Trade<cyclus::Mat
         fuel_library_.batch.clear();
         int i = 0;
         for (it = trades.begin(); it != trades.end(); ++it) {
+            CompOut(discharge[i], ctx->time(), reactor_type);
             responses.push_back(std::make_pair(*it, discharge[i]));
             i++;
         }
     }else{
         //Remove the last batch from the core.
         cyclus::Material::Ptr discharge = cyclus::ResCast<Material>(inventory.Pop());
+        CompOut(discharge, ctx->time(), reactor_type);
         fuel_library_.batch.erase(fuel_library_.batch.begin());
         for (it = trades.begin(); it != trades.end(); ++it) {
             responses.push_back(std::make_pair(*it, discharge));
@@ -700,16 +710,16 @@ std::vector<double> ReactorFacility::blend_next(cyclus::toolkit::ResourceBuff fi
     cyclus::Material::Ptr mat1 = cyclus::Material::CreateUntracked(ss_fraction, fissile_mat->comp());
     cyclus::Material::Ptr mat2 = cyclus::Material::CreateUntracked(1-ss_fraction, non_fissile_mani[0]->comp());
     mat1->Absorb(mat2);
-    if(mass_check == true){
+    /*if(mass_check == true){
         if(stream_check(mat1, previous_mat) == true){
             return_amount.push_back(fraction_1 * total_mass * (1-mass_frac));
             for(int i = 0; i < return_amount.size()-1; i++){
                 return_amount[i] *= (fraction_1 * total_mass);
-                std::cout << "Stream check "<< return_amount[i] << std::endl;
+                //std::cout << "Stream check "<< return_amount[i] << std::endl;
             }
             return return_amount;
         }
-    }
+    }*/
     fuelBundle temp_bundle = comp_function(mat1, fuel_library_);
     double burnup_1;
     if(CR_target > 0){
@@ -893,7 +903,7 @@ std::vector<double> ReactorFacility::start_up(cyclus::toolkit::ResourceBuff fiss
     }
     //Finding the third burnup iterator
     /// TODO Reactor catch for extrapolation
-    std::cout << " BU1:" << burnup_1 << " BU2:" << burnup_2 << " frac1:" << fraction_1 << " frac2:" << fraction_2 << std::endl;
+    //std::cout << " BU1:" << burnup_1 << " BU2:" << burnup_2 << " frac1:" << fraction_1 << " frac2:" << fraction_2 << std::endl;
     double fraction = (fraction_1) + (measure - burnup_1)*((fraction_1 - fraction_2)/(burnup_1 - burnup_2));
     if(fraction < 0){
         std::cout << "START UP WARNING: The blending fraction for reactor " << id()<<" is negative. Fraction = " << fraction << " setting fraction to 0." <<std::endl;
@@ -922,7 +932,7 @@ std::vector<double> ReactorFacility::start_up(cyclus::toolkit::ResourceBuff fiss
         burnup_1 = burnup_2;
         burnup_2 = burnup_3;
         fraction = (fraction_1) + (measure - burnup_1)*((fraction_1 - fraction_2)/(burnup_1 - burnup_2));
-        std::cout << " BU1:" << burnup_1 << " BU2:" << burnup_2 << " frac1:" << fraction_1 << " frac2:" << fraction_2 << std::endl;
+        //std::cout << " BU1:" << burnup_1 << " BU2:" << burnup_2 << " frac1:" << fraction_1 << " frac2:" << fraction_2 << std::endl;
         if(fraction < 0){
             std::cout << "START UP WARNING: The blending fraction for reactor " << id()<<" is negative. Fraction = " << fraction << " setting fraction to 0." <<std::endl;
             fraction = 0;

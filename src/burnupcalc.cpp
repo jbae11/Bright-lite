@@ -1378,8 +1378,8 @@ fuelBundle lib_interpol(fuelBundle &input_fuel){
         if(distance_measure == 0){
             return fuel_pairs[i];
         }
-        metric_distances.push_back(pow(distance_measure, alpha/2));
-        std::cout << distance_measure << std::endl;
+        metric_distances.push_back(1-pow(distance_measure, alpha));
+        std::cout << input_fuel.interpol_libs[i] << " " << 1-pow(distance_measure, alpha) << std::endl;
     }
     double met_dist_sum;
     for (int i = 0; i < metric_distances.size(); i++){
@@ -1387,12 +1387,8 @@ fuelBundle lib_interpol(fuelBundle &input_fuel){
     }
     //std::cout << "Sum : " << met_dist_sum << std::endl;
     // Fuel Bundle instead of iso //
-    fuelBundle new_fuel;
-    new_fuel.tres = input_fuel.tres;
-    new_fuel.pnl = input_fuel.pnl;
-    new_fuel.batch = input_fuel.batch;
-    new_fuel.operation_type = input_fuel.operation_type;
-    new_fuel.target_BU = input_fuel.target_BU;
+    fuelBundle new_fuel = input_fuel;
+    new_fuel.all_iso.clear();
     for(int i = 0; i < fuel_pairs.size(); i++){
         if(i==0){
             for(int j = 0; j < fuel_pairs[i].all_iso.size(); j++){

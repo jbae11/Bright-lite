@@ -337,6 +337,17 @@ class ReactorFacility : public cyclus::Facility  {
                       "tooltip": "If a positive number is entered the calculated cycle length will be replaced by this value."}
   double cycle_length;
 
+  #pragma cyclus var {"userlevel": 3, \
+                      "tooltip": "If a positive number is entered the calculated cycle length will be replaced by this value."}
+  std::map<int, double> burnup_time;
+
+  #pragma cyclus var {"userlevel": 3, \
+                      "tooltip": "If a positive number is entered the calculated cycle length will be replaced by this value."}
+  std::map<int, double> avail_time;
+
+  #pragma cyclus var {"userlevel": 3, \
+                      "tooltip": "If a positive number is entered the calculated cycle length will be replaced by this value."}
+  std::string reactor_type;
 
  private:
   bool shutdown;
@@ -351,9 +362,8 @@ class ReactorFacility : public cyclus::Facility  {
   int outage_shutdown = 0;
   int steady_state = 0;
   double burnup_per_time;
+  double outage_time_;
   double power_per_time;
-  std::map<int, double> burnup_time;
-  std::map<int, double> availablility_time;
 };
 
 }  // namespace reactor
